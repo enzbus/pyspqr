@@ -9,12 +9,21 @@ class TestSuiteSparseQR(TestCase):
         """Test import."""
         import suitesparseqr
 
-    def test_qr_basic(self):
+    def test_qr_inputs(self):
+        "Input checking for QR function."
+
         data = np.zeros(5, dtype=float)
         indices = np.zeros(5, dtype=np.int32)
-        indptr = np.zeros(2, dtype=np.int32)
+        indptr = np.zeros(3, dtype=np.int32)
+
         from suitesparseqr import qr
-        qr(data, indices, indptr)
+        qr(3, 2, data, indices, indptr)
+
+        with self.assertRaises(TypeError):
+            qr(3.1,2, data, indices, indptr)
+
+        with self.assertRaises(TypeError):
+            qr(3, 'hi', data, indices, indptr)
         
         with self.assertRaises(TypeError):
             qr(data)
@@ -23,19 +32,25 @@ class TestSuiteSparseQR(TestCase):
             qr(data, indices)
         
         with self.assertRaises(TypeError):
-            qr(data.astype(int), indices, indptr)    
+            qr(3,2, data.astype(int), indices, indptr)    
 
         with self.assertRaises(TypeError):
-            qr(data, indices.astype(int), indptr)   
+            qr(3,2, data, indices.astype(int), indptr)   
 
         with self.assertRaises(TypeError):
-            qr(data, indices, indptr.astype(int))   
+            qr(3,2, data, indices, indptr.astype(int))   
 
         with self.assertRaises(TypeError):
-            qr(data[::2], indices, indptr)
+            qr(3,2, data[::2], indices, indptr)
 
         with self.assertRaises(TypeError):
-            qr(data, indices[::2], indptr)   
+            qr(3,2, data, indices[::2], indptr)
+
+        with self.assertRaises(TypeError):
+            qr(3,2, data, indices, indptr[::2])
+
+        with self.assertRaises(ValueError):
+            qr(3,2, data, indices[:-1], indptr)  
 
 if __name__ == '__main__':
     main()
