@@ -2,6 +2,7 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 #include <SuiteSparseQR_C.h>
+#include <stdbool.h>
 
 static PyObject *qr(PyObject *self, PyObject *args){
     /* We use names of Scipy sparse CSC.*/
@@ -56,7 +57,6 @@ static PyObject *qr(PyObject *self, PyObject *args){
     if (!cholmod_start(cc)){
         return NULL;
     }
-
 
     cholmod_sparse * input_matrix = cholmod_allocate_sparse(
         m, //size_t nrow,    // # of rows
