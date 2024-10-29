@@ -18,4 +18,6 @@ jobs:
             python-version: '3.12' 
 
       - name: test
-        run: make
+        run: |
+          - pip install --user numpy
+          - make
