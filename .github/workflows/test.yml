@@ -19,5 +19,5 @@ jobs:
 
       - name: test
         run: |
-             pip install --user numpy
+             apt install python3-numpy
              make
