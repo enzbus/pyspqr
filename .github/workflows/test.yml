@@ -40,9 +40,32 @@ jobs:
              cd SuiteSparse/SuiteSparse_config
              make global
              sudo make install
+
+             cd ../AMD
+             make global
+             sudo make install
+
+             cd ../COLAMD
+             make global
+             sudo make install
+
+             cd ../CAMD
+             make global
+             sudo make install
+
+             cd ../CCOLAMD
+             make global
+             sudo make install
+
+             cd ../CHOLMOD
+             make global
+             sudo make install
+
              cd ../SPQR
              make global
              sudo make install
+
+             cd ../..
 
       - name: install Python deps and compile/test with Makefile
         run: |
