@@ -21,6 +21,7 @@ jobs:
         run: |
              git clone --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
              cd SuiteSparse/SPQR
+             git checkout stable
              make global
              sudo make install
              cd ..
