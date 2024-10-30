@@ -19,6 +19,11 @@ jobs:
 
       - name: test
         run: |
-             sudo apt install -y libsuitesparse-dev
+             git clone --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
+             cd SuiteSparse
+             make global
+             sudo make install
+             cd ..
+             # sudo apt install -y libsuitesparse-dev
              pip install numpy
              make

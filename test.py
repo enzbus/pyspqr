@@ -15,7 +15,7 @@ class TestSuiteSparseQR(TestCase):
         m = 2
         n = 3
         # a = sp.sparse.rand(2,3,.99,'csc')
-        # a = sp.sparse.rand(2,3,.99,'csc')
+        # a.data, a.indices, a.indptr
         data = np.array([0.56080895, 0.38371089, 0.10165425, 0.61134812, 0.60591158, 0.27545353])
         indices = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
         indptr = np.array([0, 2, 4, 6], dtype=np.int32)
