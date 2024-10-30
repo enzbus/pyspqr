@@ -20,7 +20,7 @@ jobs:
       - name: test
         run: |
              git clone --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
-             cd SuiteSparse
+             cd SuiteSparse/SPQR
              make global
              sudo make install
              cd ..
