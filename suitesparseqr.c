@@ -72,9 +72,65 @@ static PyObject *qr(PyObject *self, PyObject *args){
         return NULL;
     }
 
+    memcpy(input_matrix->x, data_arr, nnz*sizeof(double));
+    memcpy(input_matrix->i, indices_arr, nnz*sizeof(int32_t));
+    memcpy(input_matrix->p, indptr_arr, (n+1)*sizeof(int32_t));
+
+
+
+    if (!cholmod_check_sparse(input_matrix, cc)){
+        printf("Input check failed!\n");
+        return NULL;
+    }
+
+
+
     if (!cholmod_print_sparse(input_matrix, "input matrix", cc)){
         return NULL;
     }
+
+    int32_t rank;
+    cholmod_sparse *R;
+    cholmod_sparse *H;
+    cholmod_dense * HTau;
+    cholmod_sparse *Zsparse;
+    cholmod_dense *Zdense;
+    int32_t * E;
+    int32_t * HPinv;
+
+    rank = SuiteSparseQR_i_C /* returns rank(A) estimate, (-1) if failure */
+(
+    /* inputs: */
+    3, //int ordering,               /* all, except 3:given treated as 0:fixed */
+    0., //double tol,                 /* columns with 2-norm <= tol treated as 0 */
+    m, //int32_t econ,               /* e = max(min(m,econ),rank(A)) */
+    0, //int getCTX,                 /* 0: Z=C (e-by-k), 1: Z=C', 2: Z=X (e-by-k) */
+    input_matrix, //cholmod_sparse *A,          /* m-by-n sparse matrix to factorize */
+    NULL, //cholmod_sparse *Bsparse,    /* sparse m-by-k B */
+    NULL, //cholmod_dense  *Bdense,     /* dense  m-by-k B */
+    /* outputs: */
+    &Zsparse, //cholmod_sparse **Zsparse,   /* sparse Z */
+    &Zdense, //cholmod_dense  **Zdense,    /* dense Z */
+    &R, //cholmod_sparse **R,         /* e-by-n sparse matrix */
+    &E, //int32_t **E,                /* size n column perm, NULL if identity */
+    &H, //cholmod_sparse **H,         /* m-by-nh Householder vectors */
+    &HPinv, //int32_t **HPinv,            /* size m row permutation */
+    &HTau, //cholmod_dense **HTau,       /* 1-by-nh Householder coefficients */
+    cc //cholmod_common *cc          /* workspace and parameters */
+) ;
+
+    if (!cholmod_print_sparse(R, "R matrix", cc)){
+        return NULL;
+    }
+
+    if (!cholmod_print_sparse(H, "H matrix", cc)){
+        return NULL;
+    }
+
+    if (!cholmod_print_dense(HTau, "HTau matrix", cc)){
+        return NULL;
+    }
+
 
     if (!cholmod_finish(cc)){
         return NULL;

@@ -12,18 +12,22 @@ class TestSuiteSparseQR(TestCase):
     def test_qr_inputs(self):
         "Input checking for QR function."
 
-        data = np.zeros(5, dtype=float)
-        indices = np.zeros(5, dtype=np.int32)
-        indptr = np.zeros(3, dtype=np.int32)
+        m = 2
+        n = 3
+        # a = sp.sparse.rand(2,3,.99,'csc')
+        # a = sp.sparse.rand(2,3,.99,'csc')
+        data = np.array([0.56080895, 0.38371089, 0.10165425, 0.61134812, 0.60591158, 0.27545353])
+        indices = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
+        indptr = np.array([0, 2, 4, 6], dtype=np.int32)
 
         from suitesparseqr import qr
-        qr(3, 2, data, indices, indptr)
+        qr(m, n, data, indices, indptr)
 
         with self.assertRaises(TypeError):
-            qr(3.1,2, data, indices, indptr)
+            qr(m + .1, n, data, indices, indptr)
 
         with self.assertRaises(TypeError):
-            qr(3, 'hi', data, indices, indptr)
+            qr(m, 'hi', data, indices, indptr)
         
         with self.assertRaises(TypeError):
             qr(data)
@@ -32,25 +36,25 @@ class TestSuiteSparseQR(TestCase):
             qr(data, indices)
         
         with self.assertRaises(TypeError):
-            qr(3,2, data.astype(int), indices, indptr)    
+            qr(m,n, data.astype(int), indices, indptr)    
 
         with self.assertRaises(TypeError):
-            qr(3,2, data, indices.astype(int), indptr)   
+            qr(m,n, data, indices.astype(int), indptr)   
 
         with self.assertRaises(TypeError):
-            qr(3,2, data, indices, indptr.astype(int))   
+            qr(m,n, data, indices, indptr.astype(int))   
 
         with self.assertRaises(TypeError):
-            qr(3,2, data[::2], indices, indptr)
+            qr(m,n, data[::2], indices, indptr)
 
         with self.assertRaises(TypeError):
-            qr(3,2, data, indices[::2], indptr)
+            qr(m,n, data, indices[::2], indptr)
 
         with self.assertRaises(TypeError):
-            qr(3,2, data, indices, indptr[::2])
+            qr(m,n, data, indices, indptr[::2])
 
         with self.assertRaises(ValueError):
-            qr(3,2, data, indices[:-1], indptr)  
+            qr(m,n, data, indices[:-1], indptr)  
 
 if __name__ == '__main__':
     main()
