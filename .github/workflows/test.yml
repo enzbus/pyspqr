@@ -67,8 +67,12 @@ jobs:
 
              cd ../..
 
-      - name: install Python deps and compile/test with Makefile
+      - name: compile with Makefile
         run: |
              # sudo apt install -y libsuitesparse-dev
              pip install numpy
-             make
+             make suitesparseqr.so
+
+      - name: test
+        run: |
+             LD_LIBRARY_PATH=/usr/local/lib python test.py
