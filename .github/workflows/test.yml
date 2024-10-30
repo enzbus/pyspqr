@@ -17,15 +17,35 @@ jobs:
         with:
             python-version: '3.12'
 
-      - name: test
+      - name: clone SuiteSparse
+        run: git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
+
+      # stuff to compile suitesparse; can also go with netlib BLAS/LAPACK, but
+      # CHOLMOD uses LAPACK for supernodal ops, better to have a good one
+
+      - name: install deps to compile SuiteSparse
+        run: sudo apt install -y libmpfr-dev libopenblas-dev
+
+      # - name: compile SuiteSparse
+      #   run: |
+      #        cd SuiteSparse #/SPQR
+      #        make global
+
+      # - name: install SuiteSparse
+      #   run: |
+      #        sudo make install
+      #        cd ..
+      - name: compile and install SuiteSparse
         run: |
-             git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
-             cd SuiteSparse #/SPQR
-             # stuff to compile suitesparse
-             sudo apt install -y libmpfr-dev
+             cd SuiteSparse/SuiteSparse_config
              make global
              sudo make install
-             cd ..
+             cd ../SPQR
+             make global
+             sudo make install
+
+      - name: install Python deps and compile/test with Makefile
+        run: |
              # sudo apt install -y libsuitesparse-dev
              pip install numpy
              make
