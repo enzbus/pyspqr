@@ -21,6 +21,8 @@ jobs:
         run: |
              git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
              cd SuiteSparse #/SPQR
+             # stuff to compile suitesparse
+             sudo apt install -y libmpfr-dev
              make global
              sudo make install
              cd ..
