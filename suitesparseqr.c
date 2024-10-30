@@ -1,10 +1,11 @@
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <SuiteSparseQR_C.h>
 #include <stdbool.h>
 
-static PyObject *qr(PyObject *self, PyObject *args){
+static inline PyObject *qr(PyObject *self, PyObject *args){
     /* We use names of Scipy sparse CSC.*/
     int m;
     int n;
@@ -155,8 +156,7 @@ static PyObject *qr(PyObject *self, PyObject *args){
         return NULL;
     }
 
-
-    return PyFloat_FromDouble(0.);
+    Py_RETURN_NONE;
 };
 
 static PyMethodDef methods[] = {
@@ -174,7 +174,7 @@ static struct PyModuleDef suitesparseqr = {
 
 PyMODINIT_FUNC PyInit_suitesparseqr(void)
 {   
-    import_array();
+    import_array(); /*Valgrind complains about this, but seems benign.*/
     return PyModuleDef_Init(&suitesparseqr);
 }
 
