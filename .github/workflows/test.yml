@@ -38,31 +38,31 @@ jobs:
       - name: compile and install SuiteSparse
         run: |
              cd SuiteSparse/SuiteSparse_config
-             make global
+             make
              sudo make install
 
              cd ../AMD
-             make global
+             make
              sudo make install
 
              cd ../COLAMD
-             make global
+             make
              sudo make install
 
              cd ../CAMD
-             make global
+             make
              sudo make install
 
              cd ../CCOLAMD
-             make global
+             make
              sudo make install
 
              cd ../CHOLMOD
-             make global
+             make
              sudo make install
 
              cd ../SPQR
-             make global
+             make
              sudo make install
 
              cd ../..
