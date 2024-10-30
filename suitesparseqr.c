@@ -131,10 +131,30 @@ static PyObject *qr(PyObject *self, PyObject *args){
         return NULL;
     }
 
+    if (!cholmod_print_sparse(Zsparse, "Zsparse matrix", cc)){
+        return NULL;
+    }
+
+    // if (!cholmod_print_dense(Zdense, "Zdense matrix", cc)){
+    //     return NULL;
+    // }
+
+
+    /*To test with valgrind*/
+    free(HPinv);
+    free(E);
+    cholmod_free_dense(&HTau, cc);
+    cholmod_free_sparse(&H, cc);
+    cholmod_free_sparse(&R, cc);
+     cholmod_free_sparse(&input_matrix, cc);
+     cholmod_free_sparse(&Zsparse, cc);
+
+
 
     if (!cholmod_finish(cc)){
         return NULL;
     }
+
 
     return PyFloat_FromDouble(0.);
 };
