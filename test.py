@@ -21,7 +21,8 @@ class TestSuiteSparseQR(TestCase):
         indptr = np.array([0, 2, 4, 6], dtype=np.int32)
 
         from suitesparseqr import qr
-        qr(m, n, data, indices, indptr)
+        HPinv = qr(m, n, data, indices, indptr)
+        print(HPinv)
 
         with self.assertRaises(TypeError):
             qr(m + .1, n, data, indices, indptr)

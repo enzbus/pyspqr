@@ -5,6 +5,74 @@
 #include <SuiteSparseQR_C.h>
 #include <stdbool.h>
 
+/*Create 1-dim Numpy array from buffer memcopying data.*/
+static inline PyObject *
+create_1dim_array_from_data(
+        size_t size, /*Numpy len of the array.*/
+        int npy_dtype, /*NPY_DOUBLE, NPY_INT64, ....*/ 
+        size_t bytesize, /*sizeof(double), ....*/ 
+        void *data /*Pointer to data.*/){
+    size_t dims[1];
+    dims[0] = size;
+    PyObject * npy_arr = PyArray_SimpleNew(1, dims, npy_dtype);
+    memcpy(PyArray_DATA((PyArrayObject *) npy_arr), data,  size*bytesize);
+    return npy_arr;
+};
+
+/*Unpack CHOLMOD sparse, return tuple (m,n,data,indices,indptr) with int32.*/
+static inline PyObject *
+tuple_from_cholmod_sparse(
+        cholmod_sparse * matrix, /*Input matrix.*/
+        cholmod_common * cc /*CHOLMOD workspace.*/
+        )
+{
+    size_t m,n,nnz;
+    if (!cholmod_check_sparse(matrix, cc)){
+        PyErr_SetString(PyExc_ValueError,
+            "Tried to unpack malformed CHOLMOD sparse matrix.");
+        return NULL;
+    }
+    if (!matrix -> itype == CHOLMOD_INT){
+        PyErr_SetString(PyExc_ValueError,
+            "Only int32 CHOLMOD sparse matrices are supported.");
+        return NULL;
+    }
+    if (!matrix -> xtype == CHOLMOD_REAL){
+        PyErr_SetString(PyExc_ValueError,
+            "Only real CHOLMOD sparse matrices are supported.");
+        return NULL;
+    }
+    if (!matrix -> dtype == CHOLMOD_DOUBLE){
+        PyErr_SetString(PyExc_ValueError,
+            "Only double float CHOLMOD sparse matrices are supported.");
+        return NULL;
+    }
+    PyObject * m_py = PyLong_FromSsize_t(matrix -> nrow);
+    PyObject * n_py = PyLong_FromSsize_t(matrix -> ncol);
+    PyObject * data_arr = create_1dim_array_from_data(
+        matrix -> nzmax, NPY_DOUBLE, sizeof(double), matrix -> x);
+    PyObject * indices_arr = create_1dim_array_from_data(
+        matrix -> nzmax, NPY_INT32, sizeof(int32_t), matrix -> i);
+    PyObject * indptr_arr = create_1dim_array_from_data(
+        matrix -> ncol, NPY_INT32, sizeof(int32_t), matrix -> p);
+
+    PyObject *rslt = PyTuple_New(5);
+    PyTuple_SetItem(rslt, 0, m_py);
+    PyTuple_SetItem(rslt, 1, n_py);
+    PyTuple_SetItem(rslt, 2, data_arr);
+    PyTuple_SetItem(rslt, 3, indices_arr);
+    PyTuple_SetItem(rslt, 4, indptr_arr);
+
+    return rslt;
+};
+
+/*Numpy 1d array from 1d CHOLMOD dense, doubles only.*/
+// static inline PyObject *
+// create_npyarr_from_cholmod_dense1d(
+//         cholmod_sparse * matrix, /*Input matrix.*/
+//         cholmod_common * cc /*CHOLMOD workspace.*/
+//         )
+
 static inline PyObject *qr(PyObject *self, PyObject *args){
     /* We use names of Scipy sparse CSC.*/
     int m;
@@ -139,25 +207,43 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     // if (!cholmod_print_dense(Zdense, "Zdense matrix", cc)){
     //     return NULL;
     // }
+    cholmod_free_sparse(&input_matrix, cc);
+    cholmod_free_sparse(&Zsparse, cc);
 
 
-    /*To test with valgrind*/
+    /*Box Python objects to return.*/
+    PyObject* HPinv_np = create_1dim_array_from_data(
+        (size_t)m, NPY_INT32, sizeof(int32_t), (void*)HPinv);
     free(HPinv);
-    free(E);
+
+    // if (!E) return NULL;
+
+    // size_t dims1[1];
+    // dims1[0] = n;
+    // PyObject * E_np = PyArray_SimpleNew(1, dims1, NPY_INT32);
+    // memcpy(PyArray_DATA((PyArrayObject *) E_np), E,  (n)*sizeof(int32_t));
+    // free(E);
+
     cholmod_free_dense(&HTau, cc);
+
+    PyObject * H_py = tuple_from_cholmod_sparse(H, cc);
     cholmod_free_sparse(&H, cc);
+
+    PyObject * R_py = tuple_from_cholmod_sparse(R, cc);
     cholmod_free_sparse(&R, cc);
-     cholmod_free_sparse(&input_matrix, cc);
-     cholmod_free_sparse(&Zsparse, cc);
-
-
 
     if (!cholmod_finish(cc)){
         return NULL;
     }
 
-    Py_RETURN_NONE;
+    PyObject *rslt = PyTuple_New(3);
+    PyTuple_SetItem(rslt, 0, HPinv_np);
+    PyTuple_SetItem(rslt, 1, R_py);
+    PyTuple_SetItem(rslt, 2, H_py);
+    return rslt;
 };
+
+
 
 static PyMethodDef methods[] = {
     {"qr", qr, METH_VARARGS, "Perform sparse QR decomposition."},
@@ -174,7 +260,8 @@ static struct PyModuleDef suitesparseqr = {
 
 PyMODINIT_FUNC PyInit_suitesparseqr(void)
 {   
-    import_array(); /*Valgrind complains about this, but seems benign.*/
+    /*Valgrind complains about this, but seems benign.*/
+    import_array();
     return PyModuleDef_Init(&suitesparseqr);
 }
 
