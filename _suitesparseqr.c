@@ -15,6 +15,9 @@ create_1dim_array_from_data(
     size_t dims[1];
     dims[0] = size;
     PyObject * npy_arr = PyArray_SimpleNew(1, dims, npy_dtype);
+    if (!npy_arr){
+        return NULL;
+    }
     memcpy(PyArray_DATA((PyArrayObject *) npy_arr), data,  size*bytesize);
     return npy_arr;
 };
@@ -70,12 +73,39 @@ tuple_from_cholmod_sparse(
     return rslt;
 };
 
-/*Numpy 1d array from 1d CHOLMOD dense, doubles only.*/
-// static inline PyObject *
-// create_npyarr_from_cholmod_dense1d(
-//         cholmod_sparse * matrix, /*Input matrix.*/
-//         cholmod_common * cc /*CHOLMOD workspace.*/
-//         )
+/*Numpy 1d array from 1-by-n CHOLMOD dense, doubles only.*/
+static inline PyObject *
+create_npyarr_from_cholmod_dense1d(
+        cholmod_dense * matrix, /*Input matrix.*/
+        cholmod_common * cc /*CHOLMOD workspace.*/
+        ){
+    if (!cholmod_check_dense(matrix, cc)){
+        PyErr_SetString(PyExc_ValueError,
+            "Tried to unpack malformed CHOLMOD dense matrix.");
+        return NULL;
+    }
+    if (! (matrix->nrow == (size_t) 1)){
+        PyErr_SetString(PyExc_ValueError,
+            "Matrix nrow is not 1.");
+        return NULL;
+    }
+    if (!matrix -> xtype == CHOLMOD_REAL){
+        PyErr_SetString(PyExc_ValueError,
+            "Only real CHOLMOD dense matrices are supported.");
+        return NULL;
+    }
+    if (!matrix -> dtype == CHOLMOD_DOUBLE){
+        PyErr_SetString(PyExc_ValueError,
+            "Only double float CHOLMOD dense matrices are supported.");
+        return NULL;
+    }
+
+    PyObject * data_arr = create_1dim_array_from_data(
+        matrix -> ncol, NPY_DOUBLE, sizeof(double), matrix -> x);
+
+    return data_arr;
+
+};
 
 static inline PyObject *qr(PyObject *self, PyObject *args){
     /* We use names of Scipy sparse CSC.*/
@@ -159,8 +189,6 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
         return NULL;
     }
 
-
-
     if (!cholmod_print_sparse(input_matrix, "input matrix", cc)){
         return NULL;
     }
@@ -197,21 +225,39 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
 
     printf("Rank of input matrix is %d\n", rank);
 
-    if (!cholmod_print_sparse(R, "R matrix", cc)){
+    if (!cholmod_check_sparse(R, cc)){
+        PyErr_SetString(PyExc_ValueError,
+            "Result matrix R failed validation!");
         return NULL;
     }
 
-    if (!cholmod_print_sparse(H, "H matrix", cc)){
+    cholmod_print_sparse(R, "R matrix", cc);
+
+    if (!cholmod_check_sparse(H, cc)){
+        PyErr_SetString(PyExc_ValueError,
+            "Result matrix H failed validation!");
         return NULL;
     }
 
-    if (!cholmod_print_dense(HTau, "HTau matrix", cc)){
+    cholmod_print_sparse(H, "H matrix", cc);
+
+    if (!cholmod_check_dense(HTau, cc)){
+        PyErr_SetString(PyExc_ValueError,
+            "Result matrix HTau failed validation!");
         return NULL;
     }
 
-    if (!cholmod_print_sparse(Zsparse, "Zsparse matrix", cc)){
+    cholmod_print_dense(HTau, "HTau matrix", cc);
+
+    if (!cholmod_check_sparse(Zsparse, cc)){
+        PyErr_SetString(PyExc_ValueError,
+            "Result matrix Zsparse failed validation!");
         return NULL;
     }
+
+    // if (!cholmod_print_sparse(Zsparse, "Zsparse matrix", cc)){
+    //     return NULL;
+    // }
 
     // if (!cholmod_print_dense(Zdense, "Zdense matrix", cc)){
     //     return NULL;
@@ -227,7 +273,7 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
 
     if (!E){
         PyErr_SetString(PyExc_ValueError,
-            "E is not null!");
+            "Second permutation array E is not null!");
         return NULL;    }
 
     free(E);
@@ -237,7 +283,7 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     // PyObject * E_np = PyArray_SimpleNew(1, dims1, NPY_INT32);
     // memcpy(PyArray_DATA((PyArrayObject *) E_np), E,  (n)*sizeof(int32_t));
     // free(E);
-
+    PyObject * HPTau_np = create_npyarr_from_cholmod_dense1d(HTau, cc);
     cholmod_free_dense(&HTau, cc);
 
     PyObject * H_py = tuple_from_cholmod_sparse(H, cc);
@@ -247,13 +293,17 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     cholmod_free_sparse(&R, cc);
 
     if (!cholmod_finish(cc)){
+        PyErr_SetString(PyExc_ValueError,
+            "Error in deallocation of CHOLMOD workspace!");
         return NULL;
     }
 
-    PyObject *rslt = PyTuple_New(3);
-    PyTuple_SetItem(rslt, 0, HPinv_np);
-    PyTuple_SetItem(rslt, 1, R_py);
-    PyTuple_SetItem(rslt, 2, H_py);
+    PyObject *rslt = PyTuple_New(4);
+    PyTuple_SetItem(rslt, 0, R_py);
+    PyTuple_SetItem(rslt, 1, H_py);
+    PyTuple_SetItem(rslt, 2, HPinv_np);
+    PyTuple_SetItem(rslt, 3, HPTau_np);
+
     return rslt;
 };
 

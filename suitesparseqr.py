@@ -12,18 +12,18 @@ def _make_csc_matrix(m,n, data, indices, indptr):
 def spqr(matrix: sp.sparse.csc_matrix):
     """Factorize Scipy sparse CSC matrix."""
     matrix = sp.sparse.csc_matrix(matrix)
-    HPinv, R, H = qr(
+    R, H, HPinv, HTau = qr(
         matrix.shape[0], matrix.shape[1], matrix.data, matrix.indices,
         matrix.indptr)
-    return HPinv, _make_csc_matrix(*H), _make_csc_matrix(*R)
+    return _make_csc_matrix(*R), _make_csc_matrix(*H), HPinv, HTau
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     np.random.seed(0);
 
     import cvxpy as cp
-    N = 100
-    M = 200
+    N = 10
+    M = 20
     x = cp.Variable(N)
     obj = cp.Minimize(cp.norm1(x @ np.random.randn(N,M)) + cp.norm1(x))
     constr = [cp.abs(x) <= .5]
@@ -36,13 +36,19 @@ if __name__ == '__main__':
     # matrix = sp.sparse.rand(200,200, density=.01, format='csc', dtype=float)
     print("matrix")
     print(repr(matrix))
-    HPinv, H, R = spqr(matrix)
-    # print("HPinv")
-    # print(HPinv)
+    R, H, HPinv, HTau = spqr(matrix)
+
     print("R")
     print(repr(R))
+
     print("H")
     print(repr(H))
+
+    print("HPinv")
+    print(HPinv)
+
+    print("HTau")
+    print(HTau)
     
     plt.figure()
     plt.imshow(R.todense())
