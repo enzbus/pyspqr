@@ -161,25 +161,44 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    cholmod_sparse * input_matrix = cholmod_allocate_sparse(
-        m, //size_t nrow,    // # of rows
-        n, //size_t ncol,    // # of columns
-        nnz, //size_t nzmax,   // max # of entries the matrix can hold
-        true, //int sorted,     // true if columns are sorted
-        true, //int packed,     // true if A is be packed (A->nz NULL), false if unpacked
-        0, //int stype,      // the stype of the matrix (unsym, tril, or triu)
-        CHOLMOD_DOUBLE+CHOLMOD_REAL,
-        cc);
+    // cholmod_sparse * input_matrix = cholmod_allocate_sparse(
+    //     m, //size_t nrow,    // # of rows
+    //     n, //size_t ncol,    // # of columns
+    //     nnz, //size_t nzmax,   // max # of entries the matrix can hold
+    //     true, //int sorted,     // true if columns are sorted
+    //     true, //int packed,     // true if A is be packed (A->nz NULL), false if unpacked
+    //     0, //int stype,      // the stype of the matrix (unsym, tril, or triu)
+    //     CHOLMOD_DOUBLE+CHOLMOD_REAL,
+    //     cc);
 
-    if (!input_matrix){
-        PyErr_SetString(PyExc_ValueError,
-            "Input matrix couldn't be created!");
-        return NULL;
-    }
+    // if (!input_matrix){
+    //     PyErr_SetString(PyExc_ValueError,
+    //         "Input matrix couldn't be created!");
+    //     return NULL;
+    // }
 
-    memcpy(input_matrix->x, data_arr, nnz*sizeof(double));
-    memcpy(input_matrix->i, indices_arr, nnz*sizeof(int32_t));
-    memcpy(input_matrix->p, indptr_arr, (n+1)*sizeof(int32_t));
+    // memcpy(input_matrix->x, data_arr, nnz*sizeof(double));
+    // memcpy(input_matrix->i, indices_arr, nnz*sizeof(int32_t));
+    // memcpy(input_matrix->p, indptr_arr, (n+1)*sizeof(int32_t));
+
+
+    cholmod_sparse input_matrix_struct = {
+        .nrow = (size_t) m,
+        .ncol = (size_t) n,
+        .nzmax = (size_t) nnz,
+        .p = indptr_arr,
+        .i = indices_arr,
+        .nz = NULL,
+        .x = data_arr,
+        .z = NULL,
+        .stype = 0,
+        .itype = CHOLMOD_INT,
+        .xtype = CHOLMOD_REAL,
+        .dtype = CHOLMOD_DOUBLE,
+        .sorted = true,
+        .packed = true,
+    };
+    cholmod_sparse *input_matrix = &input_matrix_struct;
 
 
 
@@ -262,7 +281,7 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     // if (!cholmod_print_dense(Zdense, "Zdense matrix", cc)){
     //     return NULL;
     // }
-    cholmod_free_sparse(&input_matrix, cc);
+    //cholmod_free_sparse(&input_matrix, cc);
     cholmod_free_sparse(&Zsparse, cc);
 
 
