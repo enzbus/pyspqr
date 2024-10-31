@@ -19,7 +19,11 @@ create_1dim_array_from_data(
     return npy_arr;
 };
 
-/*Unpack CHOLMOD sparse, return tuple (m,n,data,indices,indptr) with int32.*/
+/*Unpack CHOLMOD sparse, return tuple (m,n,data,indices,indptr) with int32.
+
+CAREFUL! CHOLMOD doesn't store the last value of indptr, which is nnz, that
+instead Scipy stores. We're not adapting to Scipy format here. 
+*/
 static inline PyObject *
 tuple_from_cholmod_sparse(
         cholmod_sparse * matrix, /*Input matrix.*/
@@ -138,6 +142,8 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
         cc);
 
     if (!input_matrix){
+        PyErr_SetString(PyExc_ValueError,
+            "Input matrix couldn't be created!");
         return NULL;
     }
 
@@ -148,7 +154,8 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
 
 
     if (!cholmod_check_sparse(input_matrix, cc)){
-        printf("Input check failed!\n");
+        PyErr_SetString(PyExc_ValueError,
+            "Input matrix failed validation!");
         return NULL;
     }
 
@@ -170,7 +177,7 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     rank = SuiteSparseQR_i_C /* returns rank(A) estimate, (-1) if failure */
 (
     /* inputs: */
-    3, //int ordering,               /* all, except 3:given treated as 0:fixed */
+    SPQR_ORDERING_AMD, //int ordering,               /* all, except 3:given treated as 0:fixed */
     0., //double tol,                 /* columns with 2-norm <= tol treated as 0 */
     m, //int32_t econ,               /* e = max(min(m,econ),rank(A)) */
     0, //int getCTX,                 /* 0: Z=C (e-by-k), 1: Z=C', 2: Z=X (e-by-k) */
@@ -187,6 +194,8 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     &HTau, //cholmod_dense **HTau,       /* 1-by-nh Householder coefficients */
     cc //cholmod_common *cc          /* workspace and parameters */
 ) ;
+
+    printf("Rank of input matrix is %d\n", rank);
 
     if (!cholmod_print_sparse(R, "R matrix", cc)){
         return NULL;
@@ -216,7 +225,12 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
         (size_t)m, NPY_INT32, sizeof(int32_t), (void*)HPinv);
     free(HPinv);
 
-    // if (!E) return NULL;
+    if (!E){
+        PyErr_SetString(PyExc_ValueError,
+            "E is not null!");
+        return NULL;    }
+
+    free(E);
 
     // size_t dims1[1];
     // dims1[0] = n;
@@ -250,18 +264,18 @@ static PyMethodDef methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-static struct PyModuleDef suitesparseqr = {
+static struct PyModuleDef _suitesparseqr = {
     PyModuleDef_HEAD_INIT,
-    "suitesparseqr",
+    "_suitesparseqr",
     "Python bindings for SuiteSparseQR, internal module.",
     0,
     methods,
 };
 
-PyMODINIT_FUNC PyInit_suitesparseqr(void)
+PyMODINIT_FUNC PyInit__suitesparseqr(void)
 {   
     /*Valgrind complains about this, but seems benign.*/
     import_array();
-    return PyModuleDef_Init(&suitesparseqr);
+    return PyModuleDef_Init(&_suitesparseqr);
 }
 

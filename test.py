@@ -7,7 +7,7 @@ class TestSuiteSparseQR(TestCase):
 
     def test_import(self):
         """Test import."""
-        import suitesparseqr
+        import _suitesparseqr
 
     def test_qr_inputs(self):
         "Input checking for QR function."
@@ -20,7 +20,7 @@ class TestSuiteSparseQR(TestCase):
         indices = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
         indptr = np.array([0, 2, 4, 6], dtype=np.int32)
 
-        from suitesparseqr import qr
+        from _suitesparseqr import qr
         HPinv = qr(m, n, data, indices, indptr)
         print(HPinv)
 

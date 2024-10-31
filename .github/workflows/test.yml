@@ -71,7 +71,7 @@ jobs:
         run: |
              # sudo apt install -y libsuitesparse-dev
              pip install numpy
-             make suitesparseqr.so
+             make _suitesparseqr.so
 
       - name: test
         run: |

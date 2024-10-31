@@ -13,15 +13,15 @@ VALGRIND_FLAGS = --leak-check=yes --errors-for-leak-kinds=definite --error-exitc
 
 default: test
 
-suitesparseqr.so: suitesparseqr.c
-	gcc suitesparseqr.c -shared -o suitesparseqr.so $(CCFLAGS) $(PYTHON_INCLUDE) $(NUMPY_INCLUDE) $(SPQR_INCLUDE) $(CHOLMOD_INCLUDE)
+_suitesparseqr.so: _suitesparseqr.c
+	gcc _suitesparseqr.c -shared -o _suitesparseqr.so $(CCFLAGS) $(PYTHON_INCLUDE) $(NUMPY_INCLUDE) $(SPQR_INCLUDE) $(CHOLMOD_INCLUDE)
 
-test: suitesparseqr.so
+test: _suitesparseqr.so
 	python test.py
 
 valgrind: CCFLAGS += -g -O0
-valgrind: clean suitesparseqr.so
-	valgrind $(VALGRIND_FLAGS) python -c "import suitesparseqr" 
+valgrind: clean _suitesparseqr.so
+	valgrind $(VALGRIND_FLAGS) python -c "import _suitesparseqr" 
 	valgrind $(VALGRIND_FLAGS) python test.py
 
 clean:
