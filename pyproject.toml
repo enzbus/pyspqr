@@ -120,6 +120,7 @@ inherit.before-all = "append"
 # following dependency tree has been found manually; can also compile the whole
 # thing but some components take more time and aren't used by SPQR
 before-all = [
+"echo $OpenMP_ROOT",
 "git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
 "cd SuiteSparse/SuiteSparse_config",
 "make",
