@@ -12,7 +12,7 @@ dependencies = ["numpy", "scipy"]
 dev = ["build", "twine", "auditwheel", "rstcheck", "wheel", "abi3audit"]
 
 [build-system]
-requires = ["setuptools", "numpy", "wheel"]
+requires = ["setuptools", "numpy>=2.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
@@ -24,9 +24,11 @@ Repository = "https://github.com/enzbus/pyspqr"
 skip = [
   "pp*", # Disable building PyPy wheels on all platforms
   "*-win32", 
+  # these are backward compatible, both by abi3 and Numpy2 compilation
+  # we don't compile on them because Numpy2 wheels are not available
   "cp36*",
   "cp37*",
-  "cp38*musllinux*", # doesn't install, Scipy seems to be broken
+  "cp38*",
   "*musllinux*aarch64*" # no Scipy wheels for this
 ]
 test-command = [
@@ -80,6 +82,8 @@ select = "*linux*"
 # otherwise fails to find .pc files
 environment = { PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib64/pkgconfig" }
 inherit.before-all = "append"
+# following dependency tree has been found manually; can also compile the whole
+# thing but some components take more time and aren't used by SPQR
 before-all = [
 "git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
 "cd SuiteSparse/SuiteSparse_config",
@@ -106,4 +110,11 @@ before-all = [
 "cd ../..",
 "pkg-config --libs --cflags SPQR",
 "pkg-config --libs --cflags CHOLMOD",
+]
+
+[[tool.cibuildwheel.overrides]]
+select = "*"
+inherit.repair-wheel-command = "append"
+repair-wheel-command = [
+  "pipx run abi3audit --strict --report {wheel}",
 ]
