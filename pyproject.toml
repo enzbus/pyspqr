@@ -16,4 +16,4 @@ requires = ["setuptools>=61", "numpy", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
-Repository = "https://github.com/enzbus/suitesparseqr"
+Repository = "https://github.com/enzbus/pyspqr"

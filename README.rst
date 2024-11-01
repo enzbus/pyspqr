@@ -1,3 +1,4 @@
+
 ``pyspqr``: Simple Python Wrapper for SuiteSparseQR
 ===================================================
 

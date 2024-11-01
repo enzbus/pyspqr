@@ -45,4 +45,4 @@ clean:
 	rm -rf *.egg-info | true
 
 release: build
-	env/bin/python -m twine upload --skip-existing dist/*
+	env/bin/python -m twine upload --skip-existing dist/*.tar.gz
