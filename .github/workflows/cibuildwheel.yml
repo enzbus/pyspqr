@@ -13,9 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-    #   - name: Install SuiteSparse on MacOS
-    #     if: runner.os == 'macOS'
-    #     run: brew install suitesparse
+      - name: Install openMP (runtime) on MacOS
+        if: runner.os == 'macOS'
+        run: brew install libomp
 
       - name: Set up QEMU for aarch64 compilation on Linux
         if: runner.os == 'Linux'
