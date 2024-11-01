@@ -8,14 +8,25 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [windows-latest] #macos-13] # macos-14, windows-latest, # mac arm needs MACOSX_DEPLOYMENT_TARGET 14 b/c of libs pulled via brew
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install SuiteSparse on Mac
-        if: runner.os == 'macOS'
-        run: brew install suitesparse
+    #   - name: Install SuiteSparse on MacOS
+    #     if: runner.os == 'macOS'
+    #     run: brew install suitesparse
+
+      - name: Install conda on Windows
+        if: runner.os == 'Windows'
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniconda-version: "latest"
+          channels: conda-forge, anaconda
+
+      - name: Install SuiteSparse and Pkc-Config on Windows
+        if: runner.os == 'Windows'
+        run: conda install -y suitesparse pkgconfig
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.21.3
