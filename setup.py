@@ -1,3 +1,5 @@
+import os
+import platform
 import subprocess
 
 import numpy
@@ -28,7 +30,16 @@ def pkgconfig(package, kw):
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
     return kw
 
-kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
+# we pick up Conda SuiteSparse on Windows
+if platform.system() == "Windows":
+    if "CONDA_PREFIX" not in os.environ:
+        raise Exception('TEST TO DEBUG')
+
+if ("CONDA_PREFIX" in os.environ) and (platform.system() == "Windows"):
+    kw = {'include_dirs':[f"-I{os.environ[CONDA_PREFIX]}\include\suitesparse"],
+        'library_dirs':[], 'libraries':["-lcholmod", "-lspqr"]}
+else:
+    kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
 kw['include_dirs'].append(numpy.get_include())
 pkgconfig('SPQR', kw)
 pkgconfig('CHOLMOD', kw)
