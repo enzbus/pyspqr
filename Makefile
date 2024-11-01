@@ -17,7 +17,7 @@ _suitesparseqr.so: _suitesparseqr.c
 	gcc _suitesparseqr.c -shared -o _suitesparseqr.so $(CCFLAGS) $(PYTHON_INCLUDE) $(NUMPY_INCLUDE) $(SPQR_INCLUDE) $(CHOLMOD_INCLUDE)
 
 test: _suitesparseqr.so
-	python test.py
+	python -m suitesparseqr.test
 
 valgrind: CCFLAGS += -g -O0
 valgrind: clean _suitesparseqr.so

@@ -35,6 +35,7 @@ pkgconfig('CHOLMOD', kw)
 
 
 setup_args = dict(
+    packages = ["suitesparseqr"],
     ext_modules = [
         Extension(
             "_suitesparseqr",
