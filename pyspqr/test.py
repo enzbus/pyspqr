@@ -1,13 +1,29 @@
+# Copyright (C) 2024 Enzo Busseti
+#
+# This file is part of Pyspqr.
+#
+# Pyspqr is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# Pyspqr is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# Pyspqr. If not, see <https://www.gnu.org/licenses/>.
+"""Unit tests for pyspqr."""
 from unittest import TestCase, main
 
 import numpy as np
 
 class TestSuiteSparseQR(TestCase):
-    """Unit tests for suitesparseqr."""
+    """Unit tests for pyspqr."""
 
     def test_import(self):
         """Test import."""
-        import _suitesparseqr
+        import _pyspqr
 
     def test_qr_inputs(self):
         "Input checking for QR function."
@@ -20,7 +36,7 @@ class TestSuiteSparseQR(TestCase):
         indices = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
         indptr = np.array([0, 2, 4, 6], dtype=np.int32)
 
-        from _suitesparseqr import qr
+        from _pyspqr import qr
         result = qr(m, n, data, indices, indptr)
         print(result)
 
@@ -68,7 +84,7 @@ class TestSuiteSparseQR(TestCase):
         indices = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
         indptr = np.array([0, 2, 4, 6], dtype=np.int32)
 
-        from _suitesparseqr import qr
+        from _pyspqr import qr
         with self.assertRaises(ValueError):
             _indptr = np.array([0, 4, 4, 6], dtype=np.int32)
             qr(m, n, data, indices, _indptr)

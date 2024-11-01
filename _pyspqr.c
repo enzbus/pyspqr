@@ -1,4 +1,22 @@
-/*C extension exposing SuiteSparseQR factorization function.
+/******************************************************************************
+* Copyright (C) 2024 Enzo Busseti
+*
+* This file is part of Pyspqr.
+*
+* Pyspqr is free software: you can redistribute it and/or modify it under the
+* terms of the GNU General Public License as published by the Free Software
+* Foundation, either version 3 of the License, or (at your option) any later
+* version.
+*
+* Pyspqr is distributed in the hope that it will be useful, but WITHOUT ANY
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+* A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with
+* Pyspqr. If not, see <https://www.gnu.org/licenses/>.
+*******************************************************************************
+
+C extension exposing SuiteSparseQR factorization function.
 
 Parsing Numpy arrays as inputs, expected already clean (contiguous, right
 dtype, ...). Producing Numpy arrays as output.
@@ -444,18 +462,18 @@ static PyMethodDef methods[] = {
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
-static PyModuleDef _suitesparseqr = {
+static PyModuleDef _pyspqr = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "_suitesparseqr",
+    .m_name = "_pyspqr",
     .m_doc = "Python bindings for SuiteSparseQR, internal module.",
     .m_size = 0,
     .m_methods = methods,
 };
 
-PyMODINIT_FUNC PyInit__suitesparseqr(void)
+PyMODINIT_FUNC PyInit__pyspqr(void)
 {   
     /*Valgrind complains about this, but seems benign.*/
     import_array();
-    return PyModule_Create(&_suitesparseqr);
+    return PyModule_Create(&_pyspqr);
 }
 

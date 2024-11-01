@@ -1,5 +1,5 @@
 [project]
-name = "suitesparseqr"
+name = "pyspqr"
 version = "0.0.1"
 description = "Python bindings for SuiteSparseQR."
 license = {text = "GPLv3"}

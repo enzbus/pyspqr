@@ -1,14 +1,14 @@
-SuiteSparseQR Simple Python Wrapper
-===================================
+``pyspqr``: Simple Python Wrapper for SuiteSparseQR
+===================================================
 
 .. code-block:: python
 
     import scipy as sp
-    from suitesparseqr import spqr
+    from pyspqr import qr
     
     A = sp.sparse.random(1000,1000, format='csc')
 
-    R, H, HPinv, HTau = spqr(A)
+    R, H, HPinv, HTau = qr(A)
 
 
 The result objects are Scipy CSC sparse matrices or 1 dimensional Numpy arrays.

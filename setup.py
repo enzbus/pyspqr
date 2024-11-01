@@ -35,11 +35,11 @@ pkgconfig('CHOLMOD', kw)
 
 
 setup_args = dict(
-    packages = ["suitesparseqr"],
+    packages = ["pyspqr"],
     ext_modules = [
         Extension(
-            "_suitesparseqr",
-            sources=['_suitesparseqr.c', ],
+            "_pyspqr",
+            sources=['_pyspqr.c', ],
             **kw,
             extra_compile_args=[],
             # We define it in the code for safety

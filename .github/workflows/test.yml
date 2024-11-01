@@ -71,11 +71,11 @@ jobs:
         run: |
              # sudo apt install -y libsuitesparse-dev
              pip install numpy
-             make _suitesparseqr.so
+             make _pyspqr.so
 
       - name: test
         run: |
-             LD_LIBRARY_PATH=/usr/local/lib python -m suitesparseqr.test
+             LD_LIBRARY_PATH=/usr/local/lib python -m pyspqr.test
 
       - name: build wheel and test
         run: |
@@ -86,4 +86,4 @@ jobs:
              python -m twine check dist/*.whl
              python -m auditwheel repair dist/*.whl --plat linux_x86_64 -w wheelhouse/
              pip install wheelhouse/*.whl
-             python -m suitesparseqr.test
+             python -m pyspqr.test
