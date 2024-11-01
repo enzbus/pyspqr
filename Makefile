@@ -21,19 +21,21 @@ test: _pyspqr.so
 
 valgrind: CCFLAGS += -g -O0
 valgrind: clean _pyspqr.so
-	valgrind $(VALGRIND_FLAGS) python -c "import _pyspqr" 
-	valgrind $(VALGRIND_FLAGS) python -m pyspqr.test
+	valgrind $(VALGRIND_FLAGS) python -c "import _pyspqr"
+	cp pyspqr/test.py .
+	valgrind $(VALGRIND_FLAGS) python test.py
+	rm test.py
 
 build: env clean
-	python -m build .
-	twine check dist/*.whl
+	env/bin/python -m build .
+	env/bin/python -m twine check dist/*.whl
 	# sudo apt install patchelf
-	auditwheel repair dist/*.whl --plat linux_x86_64 -w dist/
+	env/bin/python -m auditwheel repair dist/*.whl --plat linux_x86_64 -w dist/
 
 env: clean
 	python -m venv --system-site-packages env
 	env/bin/pip install -e .[dev]
-	python -m pyspqr.test
+	env/bin/python -m pyspqr.test
 
 clean:
 	rm *.so || true
@@ -42,5 +44,5 @@ clean:
 	rm -rf dist || true 
 	rm -rf *.egg-info | true
 
-release: build  ## update version, publish to pypi
-	twine upload --skip-existing dist/*
+release: build
+	env/bin/python -m twine upload --skip-existing dist/*

@@ -14,4 +14,5 @@
 # You should have received a copy of the GNU General Public License along with
 # PySPQR. If not, see <https://www.gnu.org/licenses/>.
 """Republish API from internal module."""
+__version__ = "0.0.1"
 from .pyspqr import qr
