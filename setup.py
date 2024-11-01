@@ -33,14 +33,15 @@ kw['include_dirs'].append(numpy.get_include())
 pkgconfig('SPQR', kw)
 pkgconfig('CHOLMOD', kw)
 
-
-setup_args = dict(
+setup(
     packages = ["pyspqr"],
-    ext_modules = [
+    ext_modules =  [
         Extension(
             "_pyspqr",
-            sources=['_pyspqr.c', ],
-            **kw,
+            sources=['_pyspqr.c'],
+            include_dirs=kw['include_dirs'],
+            library_dirs=kw['library_dirs'],
+            libraries=kw['libraries'],
             extra_compile_args=[],
             # We define it in the code for safety
             # define_macros=[("Py_LIMITED_API", "0x03060000")],
@@ -49,4 +50,3 @@ setup_args = dict(
     ],
     cmdclass={"bdist_wheel": bdist_wheel_abi3},
 )
-setup(**setup_args)
