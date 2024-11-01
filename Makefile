@@ -31,6 +31,7 @@ build: env clean
 	env/bin/python -m twine check dist/*.whl
 	# sudo apt install patchelf
 	env/bin/python -m auditwheel repair dist/*.whl --plat linux_x86_64 -w dist/
+	env/bin/python -m abi3audit --strict --report dist/*.whl
 
 env: clean
 	python -m venv --system-site-packages env

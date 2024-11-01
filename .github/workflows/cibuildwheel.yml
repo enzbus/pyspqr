@@ -13,6 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install SuiteSparse on Mac
+        if: runner.os == 'macOS'
+        run: brew install suitesparse
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.21.3
 
