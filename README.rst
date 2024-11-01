@@ -25,9 +25,9 @@ Installation
 
 We publish compiled wheels in PyPI, `see here <https://pypi.org/project/pyspqr/#files>`__.
 Wheels ship bundled with the latest version of SuiteSparse which we compile
-ourselves in CI/CD. They are linked to openBLAS. OpenMP is enabled on Linux
-builds and OSX arm 10.14 or greater (the other build, 10.10 or greater, does not
-have openMP).
+ourselves in CI/CD. They are linked to openBLAS on Linux and Windows and
+Accelerate on OSX. OpenMP is enabled on Linux builds and OSX aarch64 10.14 or
+greater (the other build, 10.10 or greater, does not have openMP).
 
 All our packaging code is standard setuptools, with minimal tweaks (we use
 ``pkg-config``), so you should be able to compile locally using our source
