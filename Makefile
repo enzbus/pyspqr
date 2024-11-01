@@ -22,7 +22,7 @@ test: _pyspqr.so
 valgrind: CCFLAGS += -g -O0
 valgrind: clean _pyspqr.so
 	valgrind $(VALGRIND_FLAGS) python -c "import _pyspqr" 
-	valgrind $(VALGRIND_FLAGS) python pyspqr/test.py
+	valgrind $(VALGRIND_FLAGS) python -m pyspqr.test
 
 build: env clean
 	python -m build .
@@ -38,6 +38,7 @@ env: clean
 clean:
 	rm *.so || true
 	rm -rf build || true
+	rm -rf env || true
 	rm -rf dist || true 
 	rm -rf *.egg-info | true
 

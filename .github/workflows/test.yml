@@ -75,7 +75,8 @@ jobs:
 
       - name: test
         run: |
-             LD_LIBRARY_PATH=/usr/local/lib python pyspqr/test.py
+             pip install scipy
+             LD_LIBRARY_PATH=/usr/local/lib python -m pyspqr.test
 
       - name: build wheel and test
         run: |
