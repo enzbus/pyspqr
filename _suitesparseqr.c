@@ -1,3 +1,21 @@
+/*C extension exposing SuiteSparseQR factorization function.
+
+Parsing Numpy arrays as inputs, expected already clean (contiguous, right
+dtype, ...). Producing Numpy arrays as output.
+
+Sadly it appears difficult to create arrays with memory allocated elsewhere (by
+SuiteSparse), see for example:
+
+https://stackoverflow.com/questions/28905659/creating-a-numpy-array-in-c-from-an-allocated-array-is-causing-memory-leaks
+
+So we're creating fresh arrays and memcpy'ing the result of the SuiteSparse
+objects, which we free here.
+
+Excellent guide on CPython extension API:
+
+https://pythonextensionpatterns.readthedocs.io/en/latest/
+
+*/
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -58,11 +76,28 @@ tuple_from_cholmod_sparse(
     PyObject * n_py = PyLong_FromSsize_t(matrix -> ncol);
     PyObject * data_arr = create_1dim_array_from_data(
         matrix -> nzmax, NPY_DOUBLE, sizeof(double), matrix -> x);
+    if (!data_arr){
+        Py_DECREF(m_py);
+        Py_DECREF(n_py);
+        return NULL;
+    }
     PyObject * indices_arr = create_1dim_array_from_data(
         matrix -> nzmax, NPY_INT32, sizeof(int32_t), matrix -> i);
+    if (!indices_arr){
+        Py_DECREF(m_py);
+        Py_DECREF(n_py);
+        Py_DECREF(data_arr);
+        return NULL;
+    }
     PyObject * indptr_arr = create_1dim_array_from_data(
         matrix -> ncol, NPY_INT32, sizeof(int32_t), matrix -> p);
-
+    if (!indptr_arr){
+        Py_DECREF(m_py);
+        Py_DECREF(n_py);
+        Py_DECREF(data_arr);
+        Py_DECREF(indices_arr);
+        return NULL;
+    }
     PyObject *rslt = PyTuple_New(5);
     PyTuple_SetItem(rslt, 0, m_py);
     PyTuple_SetItem(rslt, 1, n_py);
@@ -108,38 +143,62 @@ create_npyarr_from_cholmod_dense1d(
 };
 
 static inline PyObject *qr(PyObject *self, PyObject *args){
-    /* We use names of Scipy sparse CSC.*/
+    /* Wrap of QR factorization function in SuiteSparseQR.
+    
+    Only doubles CSC matrices with int32 indexing, which is what Scipy uses.
+
+    Here SuiteSparseQR does memory allocation (only function in this module).
+    Peak memory usage here might be 2/3x the size of the output memory size.
+
+    Memory size of the output can't be determined easily, it depends of the
+    sparse pattern. Experimentally, with structured matrices coming from convex
+    programs, it should be OK, with the R and Q matrices about the same total
+    size of the input matrix. It could be much worse if the input matrix has
+    random sparse pattern.
+
+    This requires a version of SuiteSparseQR around what was published in 2024
+    (not sure which exact one), but around 2023 some changes were pushed in the
+    C header file. In compilation to be safe we compile the latest mid-2024
+    version.
+
+    We return *only* objects allocated by CPython and free everything else. 
+
+    Input is (m, n, matrix.data, matrix.indices, matrix.indptr)
+
+    where matrix is a scipy.sparse.csc_matrix.
+    */
+
     int m;
     int n;
     PyArrayObject *data_np;
     PyArrayObject *indices_np;
     PyArrayObject *indptr_np;
-    
+
+    /*Parse and validate inputs.*/
+
     PyArg_ParseTuple(args, "iiOOO", &m, &n, &data_np, &indices_np, &indptr_np);
     
-    if (PyErr_Occurred()){
+    if (PyErr_Occurred()) {
         return NULL;
     }
+
     if (!PyArray_Check(data_np) || PyArray_TYPE(data_np) != NPY_DOUBLE || !PyArray_IS_C_CONTIGUOUS(data_np)){
         PyErr_SetString(PyExc_TypeError,
            "Data argument must be contiguous double Numpy array.");
         return NULL;
     }
-    double * data_arr = PyArray_DATA(data_np);
 
     if (!PyArray_Check(indices_np) || PyArray_TYPE(indices_np) != NPY_INT32 || !PyArray_IS_C_CONTIGUOUS(indices_np)){
         PyErr_SetString(PyExc_TypeError,
             "Indices argument must be contiguous int32 Numpy array.");
         return NULL;
     }
-    int32_t * indices_arr = PyArray_DATA(indices_np);
 
     if (!PyArray_Check(indptr_np) || PyArray_TYPE(indptr_np) != NPY_INT32 || !PyArray_IS_C_CONTIGUOUS(indptr_np)){
         PyErr_SetString(PyExc_TypeError,
             "Indptr argument must be contiguous int32 Numpy array.");
         return NULL;
     }
-    int32_t * indptr_arr = PyArray_DATA(indptr_np);
 
     size_t nnz = PyArray_SIZE(data_np);
     if (nnz != PyArray_SIZE(indices_np)){
@@ -154,42 +213,53 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    /*SuiteSparse QR.*/
+    /* Initialize SuiteSparse QR.*/
+
     cholmod_common Common, *cc;
     cc = &Common;
     if (!cholmod_start(cc)){
+        PyErr_SetString(PyExc_ValueError,
+            "SuiteSparseQR couldn't be initialized!");
         return NULL;
     }
 
-    // cholmod_sparse * input_matrix = cholmod_allocate_sparse(
-    //     m, //size_t nrow,    // # of rows
-    //     n, //size_t ncol,    // # of columns
-    //     nnz, //size_t nzmax,   // max # of entries the matrix can hold
-    //     true, //int sorted,     // true if columns are sorted
-    //     true, //int packed,     // true if A is be packed (A->nz NULL), false if unpacked
-    //     0, //int stype,      // the stype of the matrix (unsym, tril, or triu)
-    //     CHOLMOD_DOUBLE+CHOLMOD_REAL,
-    //     cc);
+    /* Next section could instead use this code, which allocates the matrix
+    using SuiteSparse:
 
-    // if (!input_matrix){
-    //     PyErr_SetString(PyExc_ValueError,
-    //         "Input matrix couldn't be created!");
-    //     return NULL;
-    // }
+    cholmod_sparse * input_matrix = cholmod_allocate_sparse(
+        m, //size_t nrow,    // # of rows
+        n, //size_t ncol,    // # of columns
+        nnz, //size_t nzmax,   // max # of entries the matrix can hold
+        true, //int sorted,     // true if columns are sorted
+        true, //int packed,     // true if A is be packed (A->nz NULL), false if unpacked
+        0, //int stype,      // the stype of the matrix (unsym, tril, or triu)
+        CHOLMOD_DOUBLE+CHOLMOD_REAL,
+        cc);
 
-    // memcpy(input_matrix->x, data_arr, nnz*sizeof(double));
-    // memcpy(input_matrix->i, indices_arr, nnz*sizeof(int32_t));
-    // memcpy(input_matrix->p, indptr_arr, (n+1)*sizeof(int32_t));
+    if (!input_matrix){
+        PyErr_SetString(PyExc_ValueError,
+            "Input matrix couldn't be created!");
+        return NULL;
+    }
 
+    memcpy(input_matrix->x, PyArray_DATA(data_np), nnz*sizeof(double));
+    memcpy(input_matrix->i, PyArray_DATA(indices_np), nnz*sizeof(int32_t));
+    memcpy(input_matrix->p, PyArray_DATA(indptr_np), (n+1)*sizeof(int32_t));
+
+    Remember to free it afterwards!
+
+    */
+
+    /*Create input matrix in SuiteSparse.*/
 
     cholmod_sparse input_matrix_struct = {
         .nrow = (size_t) m,
         .ncol = (size_t) n,
         .nzmax = (size_t) nnz,
-        .p = indptr_arr,
-        .i = indices_arr,
+        .p = PyArray_DATA(indptr_np),
+        .i = PyArray_DATA(indices_np),
         .nz = NULL,
-        .x = data_arr,
+        .x = PyArray_DATA(data_np),
         .z = NULL,
         .stype = 0,
         .itype = CHOLMOD_INT,
@@ -200,17 +270,16 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     };
     cholmod_sparse *input_matrix = &input_matrix_struct;
 
-
+    /*Validate input matrix.*/
 
     if (!cholmod_check_sparse(input_matrix, cc)){
         PyErr_SetString(PyExc_ValueError,
             "Input matrix failed validation!");
+        cholmod_finish(cc);
         return NULL;
     }
 
-    if (!cholmod_print_sparse(input_matrix, "input matrix", cc)){
-        return NULL;
-    }
+    cholmod_print_sparse(input_matrix, "input matrix", cc);
 
     int32_t rank;
     cholmod_sparse *R;
@@ -242,12 +311,23 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     cc //cholmod_common *cc          /* workspace and parameters */
 ) ;
 
+    if (rank < 0){
+        PyErr_SetString(PyExc_MemoryError,
+            "SuiteSparseQR factorization returned error code! Probably there's not enough memory.");
+        goto free_and_exit_with_exception;
+    }
+
     printf("Rank of input matrix is %d\n", rank);
 
+    /*Safety checks. These should never be triggered, if the input matrix is
+    valid and there's enough memory SuiteSparse always returns a solution. In
+    case they were triggered (i.e., some bug in SuiteSparse), the state of the
+    output objects would be undefined. We still free everything.*/
+    
     if (!cholmod_check_sparse(R, cc)){
         PyErr_SetString(PyExc_ValueError,
             "Result matrix R failed validation!");
-        return NULL;
+        goto free_and_exit_with_exception;
     }
 
     cholmod_print_sparse(R, "R matrix", cc);
@@ -255,7 +335,7 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     if (!cholmod_check_sparse(H, cc)){
         PyErr_SetString(PyExc_ValueError,
             "Result matrix H failed validation!");
-        return NULL;
+        goto free_and_exit_with_exception;
     }
 
     cholmod_print_sparse(H, "H matrix", cc);
@@ -263,88 +343,117 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     if (!cholmod_check_dense(HTau, cc)){
         PyErr_SetString(PyExc_ValueError,
             "Result matrix HTau failed validation!");
-        return NULL;
+        goto free_and_exit_with_exception;
     }
 
     cholmod_print_dense(HTau, "HTau matrix", cc);
 
-    if (!cholmod_check_sparse(Zsparse, cc)){
+    /*Not sure when this happens. It's used by certain more complex ordering
+    algorithms, I guess. Can be changed if we change those.*/
+    if (!E){
         PyErr_SetString(PyExc_ValueError,
-            "Result matrix Zsparse failed validation!");
-        return NULL;
+            "Second permutation array E is not null!");
+        goto free_and_exit_with_exception;
     }
 
-    // if (!cholmod_print_sparse(Zsparse, "Zsparse matrix", cc)){
-    //     return NULL;
-    // }
-
-    // if (!cholmod_print_dense(Zdense, "Zdense matrix", cc)){
-    //     return NULL;
-    // }
-    //cholmod_free_sparse(&input_matrix, cc);
+    /*We start freeing incrementally, to save memory. These are unused.*/
     cholmod_free_sparse(&Zsparse, cc);
-
+    cholmod_free_dense(&Zdense, cc);
+    free(E);
 
     /*Box Python objects to return.*/
     PyObject* HPinv_np = create_1dim_array_from_data(
         (size_t)m, NPY_INT32, sizeof(int32_t), (void*)HPinv);
     free(HPinv);
-
-    if (!E){
-        PyErr_SetString(PyExc_ValueError,
-            "Second permutation array E is not null!");
-        return NULL;    }
-
-    free(E);
-
-    // size_t dims1[1];
-    // dims1[0] = n;
-    // PyObject * E_np = PyArray_SimpleNew(1, dims1, NPY_INT32);
-    // memcpy(PyArray_DATA((PyArrayObject *) E_np), E,  (n)*sizeof(int32_t));
-    // free(E);
-    PyObject * HPTau_np = create_npyarr_from_cholmod_dense1d(HTau, cc);
-    cholmod_free_dense(&HTau, cc);
-
-    PyObject * H_py = tuple_from_cholmod_sparse(H, cc);
-    cholmod_free_sparse(&H, cc);
-
-    PyObject * R_py = tuple_from_cholmod_sparse(R, cc);
-    cholmod_free_sparse(&R, cc);
-
-    if (!cholmod_finish(cc)){
-        PyErr_SetString(PyExc_ValueError,
-            "Error in deallocation of CHOLMOD workspace!");
+    if (!HPinv_np){
+        /*Exception set by Numpy.*/
+        cholmod_free_dense(&HTau, cc);
+        cholmod_free_sparse(&R, cc);
+        cholmod_free_sparse(&H, cc);
+        cholmod_finish(cc);
         return NULL;
     }
 
+    PyObject * HPTau_np = create_npyarr_from_cholmod_dense1d(HTau, cc);
+    cholmod_free_dense(&HTau, cc);
+    if (!HPTau_np){
+        /*Exception set by Numpy.*/
+        Py_DECREF(HPinv_np);
+        cholmod_free_sparse(&R, cc);
+        cholmod_free_sparse(&H, cc);
+        cholmod_finish(cc);
+        return NULL;
+    }
+
+    PyObject * H_py = tuple_from_cholmod_sparse(H, cc);
+    cholmod_free_sparse(&H, cc);
+    if (!H_py){
+        /*Exception set by Numpy.*/
+        Py_DECREF(HPinv_np);
+        Py_DECREF(HPTau_np);
+        cholmod_free_sparse(&R, cc);
+        cholmod_finish(cc);
+        return NULL;
+    }
+
+    PyObject * R_py = tuple_from_cholmod_sparse(R, cc);
+    cholmod_free_sparse(&R, cc);
+    if (!R_py){
+        /*Exception set by Numpy.*/
+        Py_DECREF(HPinv_np);
+        Py_DECREF(HPTau_np);
+        Py_DECREF(H_py);
+        cholmod_finish(cc);
+        return NULL;
+    }
+
+    cholmod_finish(cc);
     PyObject *rslt = PyTuple_New(4);
     PyTuple_SetItem(rslt, 0, R_py);
     PyTuple_SetItem(rslt, 1, H_py);
     PyTuple_SetItem(rslt, 2, HPinv_np);
     PyTuple_SetItem(rslt, 3, HPTau_np);
-
     return rslt;
+
+    /*Exception during QR factorization.*/
+    free_and_exit_with_exception:
+
+        cholmod_free_sparse(&Zsparse, cc);
+        cholmod_free_dense(&Zdense, cc);
+        free(HPinv);
+        free(E);
+        cholmod_free_dense(&HTau, cc);
+        cholmod_free_sparse(&R, cc);
+        cholmod_free_sparse(&H, cc);
+        cholmod_finish(cc);
+        return NULL;
+
 };
 
-
+/* Create the CPython module object.*/
 
 static PyMethodDef methods[] = {
-    {"qr", qr, METH_VARARGS, "Perform sparse QR decomposition."},
-    {NULL, NULL, 0, NULL}
+    {
+        "qr",
+        (PyCFunction) qr,
+        METH_VARARGS,
+        "Perform sparse QR decomposition."
+    },
+    {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
-static struct PyModuleDef _suitesparseqr = {
+static PyModuleDef _suitesparseqr = {
     PyModuleDef_HEAD_INIT,
-    "_suitesparseqr",
-    "Python bindings for SuiteSparseQR, internal module.",
-    0,
-    methods,
+    .m_name = "_suitesparseqr",
+    .m_doc = "Python bindings for SuiteSparseQR, internal module.",
+    .m_size = 0,
+    .m_methods = methods,
 };
 
 PyMODINIT_FUNC PyInit__suitesparseqr(void)
 {   
     /*Valgrind complains about this, but seems benign.*/
     import_array();
-    return PyModuleDef_Init(&_suitesparseqr);
+    return PyModule_Create(&_suitesparseqr);
 }
 
