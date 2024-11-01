@@ -77,6 +77,8 @@ before-all = [
 
 [[tool.cibuildwheel.overrides]]
 select = "*linux*"
+# otherwise fails to find .pc files
+environment = { PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib64/pkgconfig" }
 inherit.before-all = "append"
 before-all = [
 "git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
