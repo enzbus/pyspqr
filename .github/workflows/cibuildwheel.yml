@@ -61,7 +61,7 @@ jobs:
           # need to tell auditwheel not to try to package back-ward compatible
           CIBW_ENVIRONMENT: MACOSX_DEPLOYMENT_TARGET=14.0
           # for some reason env variable doesn't seem to be recognized
-          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "echo $MACOSX_DEPLOYMENT_TARGET && delocate-wheel --require-target-macos-version 10.14 --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "echo $MACOSX_DEPLOYMENT_TARGET && delocate-wheel --require-target-macos-version 14.0 --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           # this is $(brew --prefix)/opt/libomp
           OpenMP_ROOT: /opt/homebrew/opt/libomp
         uses: pypa/cibuildwheel@v2.21.3
