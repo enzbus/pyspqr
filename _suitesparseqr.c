@@ -17,6 +17,8 @@ https://pythonextensionpatterns.readthedocs.io/en/latest/
 
 */
 #define PY_SSIZE_T_CLEAN
+/*Can also be defined in setuptools.*/
+#define Py_LIMITED_API 0x03060000
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>

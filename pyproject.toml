@@ -9,10 +9,10 @@ maintainers = [{name = "Enzo Busseti", email = "enzo.busseti@gmail.com"}]
 dependencies = ["numpy", "scipy"]
 
 [project.optional-dependencies]
-dev = ["build", "twine", "auditwheel", "rstcheck"]
+dev = ["build", "twine", "auditwheel", "rstcheck", "wheel"]
 
 [build-system]
-requires = ["setuptools>=61", "numpy"]
+requires = ["setuptools>=61", "numpy", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
