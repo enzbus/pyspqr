@@ -8,6 +8,9 @@ authors = [{name = "Enzo Busseti"}]
 maintainers = [{name = "Enzo Busseti", email = "enzo.busseti@gmail.com"}]
 dependencies = ["numpy", "scipy"]
 
+[project.optional-dependencies]
+dev = ["build", "twine", "auditwheel", "rstcheck"]
+
 [build-system]
 requires = ["setuptools>=61", "numpy"]
 build-backend = "setuptools.build_meta"

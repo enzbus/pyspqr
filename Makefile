@@ -24,15 +24,13 @@ valgrind: clean _suitesparseqr.so
 	valgrind $(VALGRIND_FLAGS) python -c "import _suitesparseqr" 
 	valgrind $(VALGRIND_FLAGS) python test.py
 
-editable: env clean
-	env/bin/pip install -e .
-
 build: env clean
 	python -m build .
 	twine check dist/*.whl
 
-env:
+env: clean
 	python -m venv --system-site-packages env
+	env/bin/pip install -e .[dev]
 
 clean:
 	rm *.so || true

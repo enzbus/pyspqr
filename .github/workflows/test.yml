@@ -76,3 +76,9 @@ jobs:
       - name: test
         run: |
              LD_LIBRARY_PATH=/usr/local/lib python test.py
+
+      - name: build wheel and test
+        run: |
+             rm *.so || true
+             pip install .
+             python test.py
