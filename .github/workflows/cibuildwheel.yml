@@ -17,6 +17,12 @@ jobs:
     #     if: runner.os == 'macOS'
     #     run: brew install suitesparse
 
+      - name: Set up QEMU for aarch64 compilation on Linux
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
       - name: Install conda on Windows
         if: runner.os == 'Windows'
         uses: conda-incubator/setup-miniconda@v3

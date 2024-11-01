@@ -74,3 +74,11 @@ before-all = [
   #"apk update",
   "apk search -v '*blas*'", # look at what's available
   "apk add openblas-dev suitesparse-dev"]
+
+[[tool.cibuildwheel.overrides]]
+select = "*linux*"
+inherit.before-all = "append"
+before-all = [
+  "pkg-config --libs --cflags SPQR",
+  "pkg-config --libs --cflags CHOLMOD",
+  ]
