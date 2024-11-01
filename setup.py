@@ -33,8 +33,10 @@ def pkgconfig(package, kw):
 # we pick up Conda SuiteSparse on Windows, in GitHub CI
 # see here https://docs.conda.io/projects/conda-build/en/latest/resources/use-shared-libraries.html
 if ("CONDA_PREFIX" in os.environ) and (platform.system() == "Windows"):
-    kw = {'include_dirs':[f"{os.environ['CONDA_PREFIX']}\Library\include\suitesparse"],
-        'library_dirs':[], 'libraries':["cholmod", "spqr"]}
+    kw = {
+        'include_dirs':[f"{os.environ['CONDA_PREFIX']}\Library\include\suitesparse"],
+        'library_dirs':[f"{os.environ['CONDA_PREFIX']}\Library\lib"],
+        'libraries':["cholmod", "spqr"]}
 else:
     kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
 kw['include_dirs'].append(numpy.get_include())
