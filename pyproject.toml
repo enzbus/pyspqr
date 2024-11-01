@@ -12,8 +12,35 @@ dependencies = ["numpy", "scipy"]
 dev = ["build", "twine", "auditwheel", "rstcheck", "wheel", "abi3audit"]
 
 [build-system]
-requires = ["setuptools>=61", "numpy", "wheel"]
+requires = ["setuptools", "numpy", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
 Repository = "https://github.com/enzbus/pyspqr"
+
+[tool.cibuildwheel]
+skip = [
+  "pp*", # Disable building PyPy wheels on all platforms
+  "*-win32", 
+  "cp36*",
+  "cp37*",
+  "cp38*musllinux*", # doesn't install, Scipy seems to be broken
+  "*musllinux*aarch64*" # no Scipy wheels for this
+]
+test-command = [
+  "echo wheel installed successfully",
+  "python -m pyspqr.test"
+]
+
+[tool.cibuildwheel.linux]
+archs = [
+  "x86_64",
+  "aarch64",
+]
+
+[tool.cibuildwheel.windows]
+# This will probably become default in newer cibuildwheels versions
+repair-wheel-command = [
+  "pip install delvewheel",
+  "delvewheel repair -w {dest_dir} {wheel}"
+]
