@@ -80,10 +80,8 @@ before-all = [
 [[tool.cibuildwheel.overrides]]
 select = "*linux*"
 # These may be needed on different linuxes, without them one would fail to find
-# the .pc files, one other would fail to auditwheel
-environment = {
-    PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib64/pkgconfig",
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib64"}
+# the .pc files, one other would fail to auditwheel; no newlines for {} syntax
+environment = { PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib64/pkgconfig", LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib64"}
 inherit.before-all = "append"
 # following dependency tree has been found manually; can also compile the whole
 # thing but some components take more time and aren't used by SPQR
