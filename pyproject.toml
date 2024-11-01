@@ -181,7 +181,7 @@ before-all = [
 # "make",
 # "make install",
 # "cd ../..",
-"conda info --all  | grep -i SPQR"
+"conda info --all"
 # "pkg-config --libs --cflags SPQR",
 # "pkg-config --libs --cflags CHOLMOD",
 ]
