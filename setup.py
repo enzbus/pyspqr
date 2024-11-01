@@ -36,8 +36,8 @@ if platform.system() == "Windows":
         raise Exception('TEST TO DEBUG')
 
 if ("CONDA_PREFIX" in os.environ) and (platform.system() == "Windows"):
-    kw = {'include_dirs':[f"-I{os.environ[CONDA_PREFIX]}\include\suitesparse"],
-        'library_dirs':[], 'libraries':["-lcholmod", "-lspqr"]}
+    kw = {'include_dirs':[f"{os.environ[CONDA_PREFIX]}\include\suitesparse"],
+        'library_dirs':[], 'libraries':["cholmod", "spqr"]}
 else:
     kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
 kw['include_dirs'].append(numpy.get_include())
