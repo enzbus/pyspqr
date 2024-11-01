@@ -80,5 +80,10 @@ jobs:
       - name: build wheel and test
         run: |
              rm *.so || true
-             pip install .
+             sudo apt install -y patchelf
+             pip install build twine auditwheel
+             python -m build .
+             python -m twine check dist/*.whl
+             python -m auditwheel repair dist/*.whl --plat linux_x86_64 -w wheelhouse/
+             pip install wheelhouse/*.whl
              python test.py

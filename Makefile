@@ -27,6 +27,8 @@ valgrind: clean _suitesparseqr.so
 build: env clean
 	python -m build .
 	twine check dist/*.whl
+	# sudo apt install patchelf
+	auditwheel repair dist/*.whl --plat linux_x86_64 -w wheelhouse/
 
 env: clean
 	python -m venv --system-site-packages env
