@@ -1,0 +1,9 @@
+[project]
+name = "suitesparseqr"
+# more metadata
+version = "0.0.1"
+description = "Python bindings for SuiteSparseQR."
+
+[build-system]
+requires = ["setuptools>=61", "numpy"]
+build-backend = "setuptools.build_meta"

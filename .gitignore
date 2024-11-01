@@ -1,1 +1,4 @@
 *.so
+env/*
+build/*
+*egg-info/*

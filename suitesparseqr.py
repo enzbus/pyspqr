@@ -22,8 +22,8 @@ if __name__ == '__main__':
     np.random.seed(0);
 
     import cvxpy as cp
-    N = 1000
-    M = 2000
+    N = 10
+    M = 20
     x = cp.Variable(N)
     obj = cp.Minimize(cp.norm1(x @ np.random.randn(N,M)) + cp.norm1(x))
     constr = [cp.abs(x) <= .5]
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     print(repr(H))
 
 
-    if False:
+    if True:
         plt.imshow(matrix.todense())
         plt.colorbar()
         plt.title('INPUT')
