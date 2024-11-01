@@ -52,12 +52,6 @@ repair-wheel-command = [
 ]
 
 [[tool.cibuildwheel.overrides]]
-select = "*linux*"
-# These may be needed on different linuxes, without them one would fail to find
-# the .pc files, one other would fail to auditwheel; no newlines for {} syntax
-environment = { PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib64/pkgconfig", LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib64"}
-
-[[tool.cibuildwheel.overrides]]
 select = "*-manylinux_x86_64"
 inherit.before-all = "append"
 before-all = [
@@ -84,8 +78,11 @@ before-all = [
   "apk add openblas-dev mpfr-dev"]
 
 [[tool.cibuildwheel.overrides]]
+select = "*linux*"
+# These may be needed on different linuxes, without them one would fail to find
+# the .pc files, one other would fail to auditwheel; no newlines for {} syntax
+environment = { PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib64/pkgconfig", LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib64"}
 inherit.before-all = "append"
-select = "*"
 # following dependency tree has been found manually; can also compile the whole
 # thing but some components take more time and aren't used by SPQR
 before-all = [
@@ -115,6 +112,41 @@ before-all = [
 "pkg-config --libs --cflags SPQR",
 "pkg-config --libs --cflags CHOLMOD",
 ]
+
+# sadly duplicated because we need sudo on mac
+[[tool.cibuildwheel.overrides]]
+select = "*macosx*"
+inherit.before-all = "append"
+# following dependency tree has been found manually; can also compile the whole
+# thing but some components take more time and aren't used by SPQR
+before-all = [
+"git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
+"cd SuiteSparse/SuiteSparse_config",
+"make",
+"sudo make install",
+"cd ../AMD",
+"make",
+"sudo make install",
+"cd ../COLAMD",
+"make",
+"sudo make install",
+"cd ../CAMD",
+"make",
+"sudo make install",
+"cd ../CCOLAMD",
+"make",
+"sudo make install",
+"cd ../CHOLMOD",
+"make",
+"sudo make install",
+"cd ../SPQR",
+"make",
+"sudo make install",
+"cd ../..",
+"pkg-config --libs --cflags SPQR",
+"pkg-config --libs --cflags CHOLMOD",
+]
+
 
 [[tool.cibuildwheel.overrides]]
 select = "*"
