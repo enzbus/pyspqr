@@ -1,9 +1,16 @@
 [project]
 name = "suitesparseqr"
-# more metadata
 version = "0.0.1"
 description = "Python bindings for SuiteSparseQR."
+license = {text = "GPLv3"}
+readme = "README.rst"
+authors = [{name = "Enzo Busseti"}]
+maintainers = [{name = "Enzo Busseti", email = "enzo.busseti@gmail.com"}]
+dependencies = ["numpy", "scipy"]
 
 [build-system]
 requires = ["setuptools>=61", "numpy"]
 build-backend = "setuptools.build_meta"
+
+[project.urls]
+Repository = "https://github.com/enzbus/suitesparseqr"
