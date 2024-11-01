@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-13, macos-14] #, ubuntu-latest, windows-latest, # mac arm needs MACOSX_DEPLOYMENT_TARGET 14 b/c of libs pulled via brew
+        os: [windows-latest] #macos-13, macos-14] #, ubuntu-latest, windows-latest,
 
     steps:
       - uses: actions/checkout@v4
@@ -19,16 +19,16 @@ jobs:
         with:
           platforms: all
 
-      # - name: Install conda on Windows
-      #   if: runner.os == 'Windows'
-      #   uses: conda-incubator/setup-miniconda@v3
-      #   with:
-      #     miniconda-version: "latest"
-      #     channels: conda-forge, anaconda
+      - name: Install conda on Windows
+        if: runner.os == 'Windows'
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniconda-version: "latest"
+          channels: conda-forge, anaconda
 
-      # - name: Install SuiteSparse and Pkc-Config on Windows
-      #   if: runner.os == 'Windows'
-      #   run: conda install -y suitesparse pkgconfig
+      - name: Install openblas and pkg-Config on Windows
+        if: runner.os == 'Windows'
+        run: conda install -y openblas pkgconfig
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.21.3
@@ -39,37 +39,37 @@ jobs:
           path: ./wheelhouse/*.whl
 
 
-  build_mac_openmp_wheels:
-    name: Build wheels on ${{ matrix.os }} with openMP
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-14] # doesn't seem to work on the other mac
+  # build_mac_openmp_wheels:
+  #   name: Build wheels on ${{ matrix.os }} with openMP
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [macos-14] # doesn't seem to work on the other mac
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      # see https://discourse.cmake.org/t/how-to-find-openmp-with-clang-on-macos/8860
-      # and https://gist.github.com/scivision/16c2ca1dc250f54d34f1a1a35596f4a0
-      - name: Install openMP (runtime) on MacOS
-        if: runner.os == 'macOS'
-        run: |
-             brew install libomp
+  #     # see https://discourse.cmake.org/t/how-to-find-openmp-with-clang-on-macos/8860
+  #     # and https://gist.github.com/scivision/16c2ca1dc250f54d34f1a1a35596f4a0
+  #     - name: Install openMP (runtime) on MacOS
+  #       if: runner.os == 'macOS'
+  #       run: |
+  #            brew install libomp
 
-      - name: Build wheels
-        env:
-          # need to tell auditwheel not to try to package back-ward compatible
-          CIBW_ENVIRONMENT: MACOSX_DEPLOYMENT_TARGET=14.0
-          # for some reason env variable doesn't seem to be recognized
-          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "echo $MACOSX_DEPLOYMENT_TARGET && delocate-wheel --require-target-macos-version 14.0 --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
-          # this is $(brew --prefix)/opt/libomp
-          OpenMP_ROOT: /opt/homebrew/opt/libomp
-        uses: pypa/cibuildwheel@v2.21.3
+  #     - name: Build wheels
+  #       env:
+  #         # need to tell delocate-wheel not to try to package back-ward compatible
+  #         CIBW_ENVIRONMENT: MACOSX_DEPLOYMENT_TARGET=14.0
+  #         # for some reason env variable doesn't seem to be recognized
+  #         CIBW_REPAIR_WHEEL_COMMAND_MACOS: "echo $MACOSX_DEPLOYMENT_TARGET && delocate-wheel --require-target-macos-version 14.0 --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+  #         # this is $(brew --prefix)/opt/libomp
+  #         OpenMP_ROOT: /opt/homebrew/opt/libomp
+  #       uses: pypa/cibuildwheel@v2.21.3
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}-openmp
-          path: ./wheelhouse/*.whl
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}-openmp
+  #         path: ./wheelhouse/*.whl
 
   build_sdist:
     name: Build source distribution
@@ -88,7 +88,7 @@ jobs:
           path: dist/*.tar.gz
 
   upload_pypi:
-    needs: [build_wheels, build_sdist]
+    needs: [build_wheels, build_sdist] #, build_mac_openp_wheels]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
