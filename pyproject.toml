@@ -118,7 +118,7 @@ before-all = [
 select = "*macosx*"
 # careful, it's hardcoded here, I guess no easy way otherwise to evaluate
 # OpenMP_ROOT=$(brew --prefix)/opt/libomp
-environment = { OpenMP_ROOT="/opt/homebrew/opt/libomp"}
+# environment = { OpenMP_ROOT="/opt/homebrew/opt/libomp"}
 inherit.before-all = "append"
 # following dependency tree has been found manually; can also compile the whole
 # thing but some components take more time and aren't used by SPQR

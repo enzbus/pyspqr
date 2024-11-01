@@ -13,13 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # see https://discourse.cmake.org/t/how-to-find-openmp-with-clang-on-macos/8860
-      # and https://gist.github.com/scivision/16c2ca1dc250f54d34f1a1a35596f4a0
-      - name: Install openMP (runtime) on MacOS
-        if: runner.os == 'macOS'
-        run: |
-             brew install libomp
-
       - name: Set up QEMU for aarch64 compilation on Linux
         if: runner.os == 'Linux'
         uses: docker/setup-qemu-action@v3
@@ -43,6 +36,35 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+
+  build_mac_openmp_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-14] # doesn't seem to work on the other mac
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # see https://discourse.cmake.org/t/how-to-find-openmp-with-clang-on-macos/8860
+      # and https://gist.github.com/scivision/16c2ca1dc250f54d34f1a1a35596f4a0
+      - name: Install openMP (runtime) on MacOS
+        if: runner.os == 'macOS'
+        run: |
+             brew install libomp
+
+      - name: Build wheels
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.14
+          OpenMP_ROOT: $(brew --prefix)/opt/libomp
+        uses: pypa/cibuildwheel@v2.21.3
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}-openmp
           path: ./wheelhouse/*.whl
 
   build_sdist:
