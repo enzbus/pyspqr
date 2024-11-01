@@ -52,6 +52,12 @@ repair-wheel-command = [
 ]
 
 [[tool.cibuildwheel.overrides]]
+select = "*linux*"
+# These may be needed on different linuxes, without them one would fail to find
+# the .pc files, one other would fail to auditwheel; no newlines for {} syntax
+environment = { PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib64/pkgconfig", LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib64"}
+
+[[tool.cibuildwheel.overrides]]
 select = "*-manylinux_x86_64"
 inherit.before-all = "append"
 before-all = [
@@ -78,11 +84,8 @@ before-all = [
   "apk add openblas-dev mpfr-dev"]
 
 [[tool.cibuildwheel.overrides]]
-select = "*linux*"
-# These may be needed on different linuxes, without them one would fail to find
-# the .pc files, one other would fail to auditwheel; no newlines for {} syntax
-environment = { PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib64/pkgconfig", LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib64"}
 inherit.before-all = "append"
+select = "*"
 # following dependency tree has been found manually; can also compile the whole
 # thing but some components take more time and aren't used by SPQR
 before-all = [
