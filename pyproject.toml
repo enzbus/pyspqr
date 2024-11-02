@@ -116,9 +116,6 @@ before-all = [
 # sadly duplicated because we need sudo on mac
 [[tool.cibuildwheel.overrides]]
 select = "*macosx*"
-# careful, it's hardcoded here, I guess no easy way otherwise to evaluate
-# OpenMP_ROOT=$(brew --prefix)/opt/libomp
-# environment = { OpenMP_ROOT="/opt/homebrew/opt/libomp"}
 inherit.before-all = "append"
 # following dependency tree has been found manually; can also compile the whole
 # thing but some components take more time and aren't used by SPQR
@@ -151,41 +148,10 @@ before-all = [
 "pkg-config --libs --cflags CHOLMOD",
 ]
 
-
 [[tool.cibuildwheel.overrides]]
 select = "*-win_*"
 inherit.before-all = "append"
-# following dependency tree has been found manually; can also compile the whole
-# thing but some components take more time and aren't used by SPQR
-before-all = [
-# "git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
-# "cd SuiteSparse/SuiteSparse_config",
-# "make",
-# "make install",
-# "cd ../AMD",
-# "make",
-# "make install",
-# "cd ../COLAMD",
-# "make",
-# "make install",
-# "cd ../CAMD",
-# "make",
-# "make install",
-# "cd ../CCOLAMD",
-# "make",
-# "make install",
-# "cd ../CHOLMOD",
-# "make",
-# "make install",
-# "cd ../SPQR",
-# "make",
-# "make install",
-# "cd ../..",
-"conda info --all"
-# "pkg-config --libs --cflags SPQR",
-# "pkg-config --libs --cflags CHOLMOD",
-]
-
+before-all = ["conda info --all"]
 
 [[tool.cibuildwheel.overrides]]
 select = "*"
