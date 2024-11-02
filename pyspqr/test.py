@@ -24,7 +24,17 @@ class TestSuiteSparseQR(TestCase):
     def test_basic(self):
         """Test basic interface."""
         from pyspqr import qr
-        A = sp.sparse.random(100,100, format='csc')
+        A = sp.sparse.random(100,100, density=1., format='csc')
+        qr(A)
+        A = sp.sparse.random(100,20, density=1., format='csc')
+        qr(A)
+        A = sp.sparse.random(20,100, density=1., format='csc')
+        qr(A)
+        A = sp.sparse.random(1000,1000, format='csc')
+        qr(A)
+        A = sp.sparse.random(1000,200, format='csc')
+        qr(A)
+        A = sp.sparse.random(1000,200, format='csc')
         qr(A)
 
     def test_import(self):

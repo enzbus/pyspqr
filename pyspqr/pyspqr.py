@@ -20,7 +20,7 @@ import scipy as sp
 from _pyspqr import qr as _qr
 
 def _make_csc_matrix(m,n, data, indices, indptr):
-    if indptr[-1] != len(data):
+    if len(indptr) != n+1:
         indptr = np.concatenate([indptr, [len(data)]], dtype=np.int32)
     return sp.sparse.csc_matrix((data, indices, indptr),shape=(m,n))
 
