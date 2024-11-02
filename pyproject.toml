@@ -45,10 +45,10 @@ archs = [
 ]
 
 [tool.cibuildwheel.windows]
-# This will probably become default in newer cibuildwheels versions
+# For some reason this MKL dll doesn't get installed
 repair-wheel-command = [
   "pip install delvewheel",
-  "delvewheel repair -vv -w {dest_dir} {wheel}"
+  "delvewheel repair -vv --include C:\\Users\\runneradmin\\miniconda3\\envs\\test\\Library\\bin\\mkl_intel_thread.2.dll -w {dest_dir} {wheel}"
 ]
 
 [[tool.cibuildwheel.overrides]]
