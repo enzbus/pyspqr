@@ -48,7 +48,7 @@ archs = [
 # This will probably become default in newer cibuildwheels versions
 repair-wheel-command = [
   "pip install delvewheel",
-  "delvewheel repair -w {dest_dir} {wheel}"
+  "delvewheel repair -vv -w {dest_dir} {wheel}"
 ]
 
 [[tool.cibuildwheel.overrides]]

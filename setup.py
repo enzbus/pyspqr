@@ -34,8 +34,10 @@ def pkgconfig(package, kw):
 # see here https://docs.conda.io/projects/conda-build/en/latest/resources/use-shared-libraries.html
 if ("CONDA_PREFIX" in os.environ) and (platform.system() == "Windows"):
     kw = {
-        'include_dirs':[f"{os.environ['CONDA_PREFIX']}\Library\include\suitesparse"],
-        'library_dirs':[f"{os.environ['CONDA_PREFIX']}\Library\lib"],
+        'include_dirs':[f"{os.environ['CONDA_PREFIX']}\\Library\\include\\suitesparse"],
+        'library_dirs':[
+            f"{os.environ['CONDA_PREFIX']}\\Library\\lib",
+            f"{os.environ['CONDA_PREFIX']}\\Library\\bin"],
         'libraries':["cholmod", "spqr"]}
 else:
     kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
