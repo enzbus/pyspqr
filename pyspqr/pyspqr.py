@@ -17,7 +17,7 @@
 
 import numpy as np
 import scipy as sp
-from _pyspqr import qr
+from _pyspqr import qr as _qr
 
 def _make_csc_matrix(m,n, data, indices, indptr):
     if indptr[-1] != len(data):
@@ -27,7 +27,7 @@ def _make_csc_matrix(m,n, data, indices, indptr):
 def qr(matrix: sp.sparse.csc_matrix):
     """Factorize Scipy sparse CSC matrix."""
     matrix = sp.sparse.csc_matrix(matrix)
-    R, H, HPinv, HTau = qr(
+    R, H, HPinv, HTau = _qr(
         matrix.shape[0], matrix.shape[1], matrix.data, matrix.indices,
         matrix.indptr)
     return _make_csc_matrix(*R), _make_csc_matrix(*H), HPinv, HTau

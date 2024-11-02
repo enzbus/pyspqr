@@ -1,6 +1,6 @@
 [project]
 name = "pyspqr"
-version = "0.0.1"
+version = "0.0.2"
 description = "Python bindings for SuiteSparseQR."
 license = {text = "GPLv3"}
 readme = "README.rst"

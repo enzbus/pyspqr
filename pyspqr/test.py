@@ -15,11 +15,17 @@
 # Pyspqr. If not, see <https://www.gnu.org/licenses/>.
 """Unit tests for pyspqr."""
 from unittest import TestCase, main
-
+import scipy as sp
 import numpy as np
 
 class TestSuiteSparseQR(TestCase):
     """Unit tests for pyspqr."""
+
+    def test_basic(self):
+        """Test basic interface."""
+        from pyspqr import qr
+        A = sp.sparse.random(100,100, format='csc')
+        qr(A)
 
     def test_import(self):
         """Test import."""
