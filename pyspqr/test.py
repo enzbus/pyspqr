@@ -34,7 +34,7 @@ class TestSuiteSparseQR(TestCase):
         qr(A)
         A = sp.sparse.random(1000,200, format='csc')
         qr(A)
-        A = sp.sparse.random(200,1000, format='csc')
+        A = sp.sparse.random(1000,200, format='csc')
         qr(A)
 
     def test_import(self):
