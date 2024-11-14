@@ -368,20 +368,30 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
 
     cholmod_print_dense(HTau, "HTau matrix", cc);
 
-    /*Not sure when this happens. It's used by certain more complex ordering
-    algorithms, I guess. Can be changed if we change those.*/
     if (!E){
         PyErr_SetString(PyExc_ValueError,
-            "Second permutation array E is not null!");
+            "Second permutation array E is null!");
         goto free_and_exit_with_exception;
     }
 
     /*We start freeing incrementally, to save memory. These are unused.*/
     cholmod_free_sparse(&Zsparse, cc);
     cholmod_free_dense(&Zdense, cc);
-    free(E);
 
     /*Box Python objects to return.*/
+    PyObject* E_np = create_1dim_array_from_data(
+        (size_t)n, NPY_INT32, sizeof(int32_t), (void*)E);
+    free(E);
+    if (!E_np){
+        /*Exception set by Numpy.*/
+        free(HPinv);
+        cholmod_free_dense(&HTau, cc);
+        cholmod_free_sparse(&R, cc);
+        cholmod_free_sparse(&H, cc);
+        cholmod_finish(cc);
+        return NULL;
+    }
+
     PyObject* HPinv_np = create_1dim_array_from_data(
         (size_t)m, NPY_INT32, sizeof(int32_t), (void*)HPinv);
     free(HPinv);
@@ -428,11 +438,12 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     }
 
     cholmod_finish(cc);
-    PyObject *rslt = PyTuple_New(4);
+    PyObject *rslt = PyTuple_New(5);
     PyTuple_SetItem(rslt, 0, R_py);
     PyTuple_SetItem(rslt, 1, H_py);
     PyTuple_SetItem(rslt, 2, HPinv_np);
     PyTuple_SetItem(rslt, 3, HPTau_np);
+    PyTuple_SetItem(rslt, 4, E_np);
     return rslt;
 
     /*Exception during QR factorization.*/

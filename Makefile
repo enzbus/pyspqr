@@ -8,8 +8,9 @@ CHOLMOD_INCLUDE = $(shell pkg-config --cflags --libs CHOLMOD)
 
 # Valgrind: Numpy causes some "possibly lost" errors, check with:
 # valgrind --leak-check=yes python -c "import numpy"
-# so we suppress those errors;
-VALGRIND_FLAGS = --leak-check=yes --errors-for-leak-kinds=definite --error-exitcode=1
+# so we suppress those errors; results should be taken with a grain of salt,
+# inspect if in doubt, CPython and Numpy allocate a lot of things
+VALGRIND_FLAGS = --leak-check=yes --errors-for-leak-kinds=definite -s
 
 default: test
 
@@ -22,9 +23,9 @@ test: _pyspqr.so
 valgrind: CCFLAGS += -g -O0
 valgrind: clean _pyspqr.so
 	valgrind $(VALGRIND_FLAGS) python -c "import _pyspqr"
-	cp pyspqr/test.py .
-	valgrind $(VALGRIND_FLAGS) python test.py
-	rm test.py
+	cp pyspqr/test_extension.py .
+	valgrind $(VALGRIND_FLAGS) python test_extension.py
+	rm test_extension.py
 
 build: env clean
 	env/bin/python -m build .
