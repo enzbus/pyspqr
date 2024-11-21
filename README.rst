@@ -6,15 +6,33 @@
 
     import scipy as sp
     from pyspqr import qr
-    
-    A = sp.sparse.random(1000,1000, format='csc')
 
-    R, H, HPinv, HTau = qr(A)
+    A = sp.sparse.random(1000, 1000, format='csc')
 
+    Q, R, E = qr(A)
 
-The result objects are Scipy CSC sparse matrices or 1 dimensional Numpy arrays.
-The last three objects are the Householder reflection representing Q, plus a row
-permutation. In future versions we'll wrap them in a ``scipy.sparse.LinearOperator``
+Where `Q` is an orthogonal linear operator represented by Householder
+reflections plus a permutation, `R` is a sparse upper triangular matrix,
+and `E` is a permutation linear operator. They are used as follows:
+
+.. code-block:: python
+
+    import numpy as np
+    from scipy.sparse.linalg import spsolve, spsolve_triangular
+
+    x = np.random.randn(1000)
+
+    assert np.allclose(Q @ (R @ (E @ x)), A @ x)
+
+    assert np.allclose(
+        E.T @ spsolve_triangular(R, Q.T @ x, lower=False),
+        spsolve(A, x)
+        )
+
+We are working on offering an easy interface when the input matrix is not
+square and/or not full rank, and the user is interested in a least-squares
+or minimum-norm solution. (It's already doable also in those cases with the
+current outputs, but it's not too user-friendly.)
 
 Installation
 ============

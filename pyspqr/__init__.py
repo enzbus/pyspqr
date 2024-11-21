@@ -15,4 +15,4 @@
 # PySPQR. If not, see <https://www.gnu.org/licenses/>.
 """Republish API from internal module."""
 __version__ = "0.0.2"
-from .pyspqr import qr
+from .pyspqr import *

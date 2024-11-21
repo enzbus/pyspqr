@@ -66,7 +66,7 @@ def make_q(H, HTau, HPinv):
     )
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
     np.random.seed(0)
     m,n = 50,50
     while True:

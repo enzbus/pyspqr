@@ -3,8 +3,19 @@ PYTHON_INCLUDE = $(shell pkg-config --cflags --libs python3)
 NUMPY_INCLUDE = -I$(shell python -c "import numpy; print(numpy.get_include())")
 SPQR_INCLUDE = $(shell pkg-config --cflags --libs SPQR)
 CHOLMOD_INCLUDE = $(shell pkg-config --cflags --libs CHOLMOD)
+VENV_FLAGS =
 # gh runner uses ancient debian package without pkg-config stubs
 # FALLBACK = -I/usr/include/suitesparse/ -lcholmod -lspqr
+
+OS := $(shell uname)
+ifeq ($(OS), Darwin) # brew packaging is problematic
+    PYTHON_INCLUDE += -lpython3.13
+endif
+
+OS := $(shell uname)
+ifeq ($(OS), Linux) # *only* develop on Linux to save headaches
+    VENV_FLAGS += --system-site-packages
+endif
 
 # Valgrind: Numpy causes some "possibly lost" errors, check with:
 # valgrind --leak-check=yes python -c "import numpy"
@@ -35,7 +46,7 @@ build: env clean
 	env/bin/python -m abi3audit --strict --report dist/*.whl
 
 env: clean
-	python -m venv --system-site-packages env
+	python -m venv $(VENV_FLAGS) env
 	env/bin/pip install -e .[dev]
 	env/bin/python -m pyspqr.test
 

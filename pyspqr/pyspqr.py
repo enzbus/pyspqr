@@ -15,9 +15,65 @@
 # Pyspqr. If not, see <https://www.gnu.org/licenses/>.
 """Python bindings for SuiteSparseQR."""
 
+from __future__ import annotations
+
 import numpy as np
 import scipy as sp
 from _pyspqr import qr as _qr
+
+__all__ = ['qr', 'HouseholderOrthogonal', 'Permutation']
+
+
+class HouseholderOrthogonal(sp.sparse.linalg.LinearOperator):
+    """Orthogonal linear operator with Householder reflections."""
+
+    def _rmatvec(self, input_vector):
+        result = np.empty_like(input_vector)
+        result[self.permutation] = input_vector
+        for k in range(self.n_reflections):
+            col = self.householder_reflections[:,k].todense().A1
+            result -= ((col @ result) * self.householder_coefficients[k]) * col
+        return result
+
+    def _matvec(self, input_vector):
+        result = np.array(input_vector, copy=True)
+        for k in range(self.n_reflections)[::-1]:
+            col = self.householder_reflections[:,k].todense().A1
+            result -= ((col @ result) * self.householder_coefficients[k]) * col
+        return result[self.permutation]
+
+    def __init__(
+        self,
+        householder_reflections: sp.sparse.csc_matrix,
+        householder_coefficients: np.array,
+        permutation: np.array,
+        ):
+
+        self.householder_reflections = householder_reflections
+        self.householder_coefficients = householder_coefficients
+        self.permutation = permutation
+        self.n_reflections = self.householder_reflections.shape[1]
+
+        m = len(self.permutation)
+        super().__init__(dtype=float, shape=(m,m))
+
+
+class Permutation(sp.sparse.linalg.LinearOperator):
+    """Permutation linear operator."""
+
+    def _matvec(self, vector):
+        return vector[self.permutation]
+
+    def _rmatvec(self, vector):
+        result = np.empty_like(vector)
+        result[self.permutation] = vector
+        return result
+
+    def __init__(self, permutation):
+        self.permutation = permutation
+        n = len(permutation)
+        super().__init__(shape=(n,n), dtype=float)
+
 
 def _make_csc_matrix(m,n, data, indices, indptr):
     if len(indptr) != n+1:
@@ -27,85 +83,10 @@ def _make_csc_matrix(m,n, data, indices, indptr):
 def qr(matrix: sp.sparse.csc_matrix):
     """Factorize Scipy sparse CSC matrix."""
     matrix = sp.sparse.csc_matrix(matrix)
-    R, H, HPinv, HTau, E = _qr(
+    r_tuple, h_tuple, h_pinv, h_tau, e = _qr(
         matrix.shape[0], matrix.shape[1], matrix.data, matrix.indices,
         matrix.indptr)
-    return _make_csc_matrix(*R), _make_csc_matrix(*H), HPinv, HTau, E
-
-def _linear_operator_q(H, HPinv, HTau):
-    """Make scipy LinearOperator for Q."""
-    n_reflections = H.shape[1]
-    
-
-# if __name__ == '__main__':
-#     import matplotlib.pyplot as plt
-#     np.random.seed(0);
-
-#     import cvxpy as cp
-#     N = 10
-#     M = 20
-#     x = cp.Variable(N)
-#     obj = cp.Minimize(cp.norm1(x @ np.random.randn(N,M)) + cp.norm1(x))
-#     constr = [cp.abs(x) <= .5]
-#     matrix = cp.Problem(obj, constr).get_problem_data('SCS')[0]['A']
-
-#     # matrix = sp.sparse.rand(5000,5000, density=.01, format='csc', dtype=float)
-#     print("matrix")
-#     print(repr(matrix))
-
-#     import time
-#     s = time.time()
-#     R, H, HPinv, HTau = spqr(matrix)
-#     print('Wrapped SPQR took %.3f seconds' % (time.time() - s))
-
-#     # s = time.time()
-#     # cp.Problem(obj, constr).solve(verbose=True, solver='SCS')
-#     # print('CVXPY solve took %.3f seconds' % (time.time() - s))
-
-
-#     print("R")
-#     print(repr(R))
-
-#     print("H")
-#     print(repr(H))
-
-
-#     if True:
-#         plt.imshow(matrix.todense())
-#         plt.colorbar()
-#         plt.title('INPUT')
-#         # plt.show()
-
-
-#         print("HPinv")
-#         print(HPinv)
-
-#         print("HTau")
-#         print(HTau)
-        
-#         plt.figure()
-#         plt.imshow(R.todense())
-#         plt.title("R")
-#         plt.colorbar()
-#         #plt.show()
-
-        
-#         plt.figure()
-#         plt.imshow(H.todense())
-#         plt.title("H")
-#         plt.colorbar()
-#         # plt.show()
-
-#         # Householder reflections are obtained like this, check below that
-#         # indeed they are all orthogonal transformations
-
-#         # I - HTau[k] * H[:,k] @ H[:,k].T
-
-#         # we can write the H multiplication without using SPQR
-
-
-#         print(max(
-#             np.abs(
-#                 [np.abs(np.linalg.eigh(
-#                     np.eye(matrix.shape[0]) - HTau[i] * np.outer(H[:,i].todense().A1, H[:,i].todense().A1)
-#                     )[0]).std() for i in range(len(HTau))])))
+    r_csc = _make_csc_matrix(*r_tuple)
+    h_csc = _make_csc_matrix(*h_tuple)
+    q = HouseholderOrthogonal(h_csc, h_tau, h_pinv)
+    return q, r_csc, Permutation(e)
