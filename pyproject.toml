@@ -34,9 +34,9 @@ skip = [
   "*musllinux*aarch64*" # no Scipy wheels for this
 ]
 test-command = [
-  "echo wheel installed successfully"] #,
-  # "python -m pyspqr.test"
-# ]
+  "echo wheel installed successfully",
+  "python -m pyspqr.test",
+]
 # we use the newer image for aarch64, for this there are openblas dev libraries
 manylinux-aarch64-image = "manylinux_2_28"
 
@@ -154,7 +154,7 @@ repair-wheel-command = [
 [[tool.cibuildwheel.overrides]]
 select = "*-win_*"
 inherit.before-all = "append"
-environment = { BLAS_ROOT="C:\\openblas", LAPACK_ROOT="C:\\openblas" }
+environment = { BLAS_ROOT="C:\\openblas", LAPACK_ROOT="C:\\openblas", CMAKE_GENERATOR="MinGW Makefiles"}
 before-all = [
   "pwd",
   "choco install -r --no-progress wget",
