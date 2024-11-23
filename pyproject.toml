@@ -157,6 +157,8 @@ inherit.before-all = "append"
 environment = { BLAS_ROOT='C:\Users\runneradmin\miniconda3\Library', LAPACK_ROOT='C:\Users\runneradmin\miniconda3\Library', CMAKE_GENERATOR="MinGW Makefiles"}
 before-all = [
   "conda info --all",
+  'ls -hal C:\Users\runneradmin\miniconda3\Library',
+  'ls -hal C:\Users\runneradmin\miniconda3\Library\lib',
   "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
   "cd SuiteSparse/SuiteSparse_config",
   "make",
