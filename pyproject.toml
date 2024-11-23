@@ -154,14 +154,14 @@ repair-wheel-command = [
 [[tool.cibuildwheel.overrides]]
 select = "*-win_*"
 inherit.before-all = "append"
-environment = { BLAS_ROOT='C:/Users/runneradmin/miniconda3/Library', LAPACK_ROOT='C:/Users/runneradmin/miniconda3/Library',  CMAKE_GNUtoMS="ON", CMAKE_GENERATOR="MinGW Makefiles"}
+environment = { BLAS_ROOT='C:/Users/runneradmin/miniconda3/Library', LAPACK_ROOT='C:/Users/runneradmin/miniconda3/Library', CMAKE_STATIC_LIBRARY_PREFIX="", CMAKE_SHARED_LIBRARY_PREFIX="",  CMAKE_GNUtoMS="ON", CMAKE_GENERATOR="MinGW Makefiles"}
 before-all = [
   "conda info --all",
   'ls -hal C:\Users\runneradmin\miniconda3\Library',
   'ls -hal C:\Users\runneradmin\miniconda3\Library\lib',
   "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
   "cd SuiteSparse/SuiteSparse_config",
-  "cd build && cmake .. -DCMAKE_GNUtoMS=ON && cmake --build . --config Release -j8 && cd ..",
+  "make",
   "make install",
   "cd ../AMD",
   "cd build && cmake .. -DCMAKE_GNUtoMS=ON && cmake --build . --config Release -j8 && cd ..",
