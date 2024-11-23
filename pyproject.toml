@@ -168,7 +168,7 @@ inherit.before-all = "append"
 # "conda install -y openblas pkgconfig",
 before-all = [
   "wget https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.28/OpenBLAS-0.3.28-x64-64.zip",
-  "tar -xf OpenBLAS-0.3.28-x64-64.zip"
+  "tar -xf OpenBLAS-0.3.28-x64-64.zip",
   "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
   "cd SuiteSparse/SuiteSparse_config",
   "make",
