@@ -163,7 +163,9 @@ select = "*-win_*"
 inherit.before-all = "append"
 # following dependency tree has been found manually; can also compile the whole
 # thing but some components take more time and aren't used by SPQR
+environment = { BLAS_ROOT="$CONDA_PREFIX" }
 before-all = [
+  "echo $BLAS_ROOT",
   "conda info --all",
   "conda install -y openblas pkgconfig",
   "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
