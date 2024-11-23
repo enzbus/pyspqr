@@ -31,14 +31,14 @@ class HouseholderOrthogonal(sp.sparse.linalg.LinearOperator):
         result = np.empty_like(input_vector)
         result[self.permutation] = input_vector
         for k in range(self.n_reflections):
-            col = self.householder_reflections[:,k].todense().A1
+            col = self.householder_reflections[:, k].todense().A1
             result -= ((col @ result) * self.householder_coefficients[k]) * col
         return result
 
     def _matvec(self, input_vector):
         result = np.array(input_vector, copy=True)
         for k in range(self.n_reflections)[::-1]:
-            col = self.householder_reflections[:,k].todense().A1
+            col = self.householder_reflections[:, k].todense().A1
             result -= ((col @ result) * self.householder_coefficients[k]) * col
         return result[self.permutation]
 
@@ -55,7 +55,7 @@ class HouseholderOrthogonal(sp.sparse.linalg.LinearOperator):
         self.n_reflections = self.householder_reflections.shape[1]
 
         m = len(self.permutation)
-        super().__init__(dtype=float, shape=(m,m))
+        super().__init__(dtype=float, shape=(m, m))
 
 
 class Permutation(sp.sparse.linalg.LinearOperator):
@@ -72,13 +72,28 @@ class Permutation(sp.sparse.linalg.LinearOperator):
     def __init__(self, permutation):
         self.permutation = permutation
         n = len(permutation)
-        super().__init__(shape=(n,n), dtype=float)
+        super().__init__(shape=(n, n), dtype=float)
 
 
-def _make_csc_matrix(m,n, data, indices, indptr):
+def _make_csc_matrix(m, n, data, indices, indptr):
+    """Convert matrix returned by SuiteSparse to Scipy CSC matrix.
+
+    There are a few caveats, and corner cases (e.g., empty matrix) need special
+    treatment.
+    """
+
+    # empty matrix, no rows or no columns; OR data = [0.]; latter is important
+    # to catch empty matrix
+    if (n == 0) or (m == 0) or ((len(data) == 1) and (data[0] == 0.)):
+        # the three vectors are either empty or have a spurious entry
+        return sp.sparse.csc_matrix((m, n), dtype=float)
+
+    # in non-empty case, SuiteSparse doesn't store the last element of indptr,
+    # which Scipy uses
     if len(indptr) != n+1:
         indptr = np.concatenate([indptr, [len(data)]], dtype=np.int32)
-    return sp.sparse.csc_matrix((data, indices, indptr),shape=(m,n))
+
+    return sp.sparse.csc_matrix((data, indices, indptr), shape=(m, n))
 
 def qr(matrix: sp.sparse.csc_matrix):
     """Factorize Scipy sparse CSC matrix."""

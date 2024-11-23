@@ -18,7 +18,9 @@ build-backend = "setuptools.build_meta"
 [project.urls]
 Repository = "https://github.com/enzbus/pyspqr"
 
-
+[tool.autopep8]
+# these have been selected by hand, whitespaces and empty lines
+select = ["W291","W292","W293","W391","E231","E225","E303"]
 
 [tool.cibuildwheel]
 skip = [

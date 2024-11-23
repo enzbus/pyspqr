@@ -59,3 +59,6 @@ clean:
 
 release: build
 	env/bin/python -m twine upload --skip-existing dist/*.tar.gz
+
+fix:
+	env/bin/python -m autopep8 -i -r pyspqr

@@ -48,33 +48,33 @@ class TestSuiteSparseQRExtension(TestCase):
 
         with self.assertRaises(TypeError):
             qr(m, 'hi', data, indices, indptr)
-        
+
         with self.assertRaises(TypeError):
             qr(data)
 
         with self.assertRaises(TypeError):
             qr(data, indices)
-        
-        with self.assertRaises(TypeError):
-            qr(m,n, data.astype(int), indices, indptr)    
 
         with self.assertRaises(TypeError):
-            qr(m,n, data, indices.astype(int), indptr)   
+            qr(m, n, data.astype(int), indices, indptr)
 
         with self.assertRaises(TypeError):
-            qr(m,n, data, indices, indptr.astype(int))   
+            qr(m, n, data, indices.astype(int), indptr)
 
         with self.assertRaises(TypeError):
-            qr(m,n, data[::2], indices, indptr)
+            qr(m, n, data, indices, indptr.astype(int))
 
         with self.assertRaises(TypeError):
-            qr(m,n, data, indices[::2], indptr)
+            qr(m, n, data[::2], indices, indptr)
 
         with self.assertRaises(TypeError):
-            qr(m,n, data, indices, indptr[::2])
+            qr(m, n, data, indices[::2], indptr)
+
+        with self.assertRaises(TypeError):
+            qr(m, n, data, indices, indptr[::2])
 
         with self.assertRaises(ValueError):
-            qr(m,n, data, indices[:-1], indptr)
+            qr(m, n, data, indices[:-1], indptr)
 
     def test_wrong_CSC_format_inputs(self):
         "Check errors caught by SuiteSparse input validation."

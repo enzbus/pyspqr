@@ -24,21 +24,53 @@ from .test_extension import TestSuiteSparseQRExtension
 class TestSuiteSparseQR(TestCase):
     """Unit tests for pyspqr."""
 
-    def test_basic(self):
-        """Test basic interface."""
-        
-        A = sp.sparse.random(100,100, density=1., format='csc')
-        qr(A)
-        A = sp.sparse.random(100,20, density=1., format='csc')
-        qr(A)
-        A = sp.sparse.random(20,100, density=1., format='csc')
-        qr(A)
-        A = sp.sparse.random(1000,1000, format='csc')
-        qr(A)
-        A = sp.sparse.random(1000,200, format='csc')
-        qr(A)
-        A = sp.sparse.random(1000,200, format='csc')
-        qr(A)
+    def _check_fwd_mult(self, A, Q, R, E):
+        """Check forward multiplication."""
+        x = np.random.randn(A.shape[1])
+        self.assertTrue(np.allclose(A @ x, Q @ (R @ (E @ x))))
+
+    def _check_bwd_mult(self, A, Q, R, E):
+        """Check backward multiplication."""
+        x = np.random.randn(A.shape[0])
+        self.assertTrue(np.allclose(A.T @ x, E.T @ (R.T @ (Q.T @ x))))
+
+    def test_corner(self):
+        """Test with some corner cases."""
+
+        # empty matrix
+        for m, n in ((10, 10), (10, 5), (5, 10)):
+            A = sp.sparse.csc_matrix((m, n))
+            Q, R, E = qr(A)
+            self._check_fwd_mult(A, Q, R, E)
+            self._check_bwd_mult(A, Q, R, E)
+
+        # super few entries matrix
+        for m, n in ((10, 10), (10, 20), (20, 10)):
+            A = sp.sparse.random(m, n, density=0.01, format='csc')
+            Q, R, E = qr(A)
+            self._check_fwd_mult(A, Q, R, E)
+            self._check_bwd_mult(A, Q, R, E)
+
+    def test_dense(self):
+        """Test with dense matrices interface."""
+
+        for m, n in [(100, 100), (100, 20), (20, 100)]:
+
+            np.random.seed(0)
+            A = sp.sparse.random(m, n, density=1., format='csc')
+            Q, R, E = qr(A)
+            self._check_fwd_mult(A, Q, R, E)
+            self._check_bwd_mult(A, Q, R, E)
+
+    def test_big_sparse(self):
+        """Test with random big sparse."""
+
+        for m, n in [(1000, 1000), (1000, 200), (200, 1000)]:
+            np.random.seed(0)
+            A = sp.sparse.random(m, n, density = 0.01, format='csc')
+            Q, R, E = qr(A)
+            self._check_fwd_mult(A, Q, R, E)
+            self._check_bwd_mult(A, Q, R, E)
 
 if __name__ == '__main__':
     main()
