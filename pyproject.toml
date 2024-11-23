@@ -162,16 +162,18 @@ repair-wheel-command = [
 select = "*-win_*"
 inherit.before-all = "append"
 # this is CONDA_ROOT; not sure how to set it automatically
-# environment = { BLAS_ROOT="C:\\Users\\runneradmin\\miniconda3" }
+environment = { BLAS_ROOT="C:\\Users\\runneradmin\\" }
 # "echo $BLAS_ROOT",
 # "conda info --all",
 # "conda install -y openblas pkgconfig",
 before-all = [
+  "pwd",
   "choco install wget",
   "wget https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.28/OpenBLAS-0.3.28-x64-64.zip",
-  "tar -xf OpenBLAS-0.3.28-x64-64.zip",
+  "mkdir openblas",
+  "tar -xf OpenBLAS-0.3.28-x64-64.zip -C openblas",
   "ls -hal",
-  "pkg-config --libs --cflags openblas",
+  "ls -hal openblas"
   "exit_here",
   "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
   "cd SuiteSparse/SuiteSparse_config",
