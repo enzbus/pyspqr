@@ -44,7 +44,7 @@ if platform.system() == "Windows":
             for component in _suitesparse_components]
             + [f"C:\\Program Files (x86)\\{component}\\lib"
                for component in _suitesparse_components],
-        'libraries':["cholmod", "spqr"]}
+        'libraries':["libcholmod", "libspqr"]}
 else:
     kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
 kw['include_dirs'].append(numpy.get_include())
