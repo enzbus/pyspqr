@@ -190,6 +190,6 @@ before-all = [
 
 [tool.cibuildwheel.windows]
 repair-wheel-command = [
-  "pip install delvewheel",
-  "delvewheel repair -w {dest_dir} {wheel}"
+  "pip install delvewheel", # paths below are default by make install SuiteSparse
+  '''delvewheel repair -vv --add-path "C:\Program Files (x86)\CHOLMOD\bin;C:\Program Files (x86)\SPQR\bin" -w {dest_dir} {wheel}'''
 ]
