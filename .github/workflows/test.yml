@@ -1,90 +1,90 @@
-# name: test
+name: test
 
-# on:
-#   - push
-#   - pull_request
+on:
+  - push
+  - pull_request
 
-# jobs:
+jobs:
 
-#   maketest:
+  maketest:
 
-#     runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-#     steps:
+    steps:
 
-#       - uses: actions/checkout@v4
-#       - uses: actions/setup-python@v5
-#         with:
-#             python-version: '3.12'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+            python-version: '3.12'
 
-#       - name: clone SuiteSparse
-#         run: git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
+      - name: clone SuiteSparse
+        run: git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
 
-#       # stuff to compile suitesparse; can also go with netlib BLAS/LAPACK, but
-#       # CHOLMOD uses LAPACK for supernodal ops, better to have a good one
+      # stuff to compile suitesparse; can also go with netlib BLAS/LAPACK, but
+      # CHOLMOD uses LAPACK for supernodal ops, better to have a good one
 
-#       - name: install deps to compile SuiteSparse
-#         run: sudo apt install -y libmpfr-dev libopenblas-dev
+      - name: install deps to compile SuiteSparse
+        run: sudo apt install -y libmpfr-dev libopenblas-dev
 
-#       # - name: compile SuiteSparse
-#       #   run: |
-#       #        cd SuiteSparse #/SPQR
-#       #        make global
+      # - name: compile SuiteSparse
+      #   run: |
+      #        cd SuiteSparse #/SPQR
+      #        make global
 
-#       # - name: install SuiteSparse
-#       #   run: |
-#       #        sudo make install
-#       #        cd ..
-#       - name: compile and install SuiteSparse
-#         run: |
-#              cd SuiteSparse/SuiteSparse_config
-#              make
-#              sudo make install
+      # - name: install SuiteSparse
+      #   run: |
+      #        sudo make install
+      #        cd ..
+      - name: compile and install SuiteSparse
+        run: |
+             cd SuiteSparse/SuiteSparse_config
+             make
+             sudo make install
 
-#              cd ../AMD
-#              make
-#              sudo make install
+             cd ../AMD
+             make
+             sudo make install
 
-#              cd ../COLAMD
-#              make
-#              sudo make install
+             cd ../COLAMD
+             make
+             sudo make install
 
-#              cd ../CAMD
-#              make
-#              sudo make install
+             cd ../CAMD
+             make
+             sudo make install
 
-#              cd ../CCOLAMD
-#              make
-#              sudo make install
+             cd ../CCOLAMD
+             make
+             sudo make install
 
-#              cd ../CHOLMOD
-#              make
-#              sudo make install
+             cd ../CHOLMOD
+             make
+             sudo make install
 
-#              cd ../SPQR
-#              make
-#              sudo make install
+             cd ../SPQR
+             make
+             sudo make install
 
-#              cd ../..
+             cd ../..
 
-#       - name: compile with Makefile
-#         run: |
-#              # sudo apt install -y libsuitesparse-dev
-#              pip install numpy
-#              make _pyspqr.so
+      - name: compile with Makefile
+        run: |
+             # sudo apt install -y libsuitesparse-dev
+             pip install numpy
+             make _pyspqr.so
 
-#       - name: test
-#         run: |
-#              pip install scipy
-#              LD_LIBRARY_PATH=/usr/local/lib python -m pyspqr.test
+      - name: test
+        run: |
+             pip install scipy
+             LD_LIBRARY_PATH=/usr/local/lib python -m pyspqr.test
 
-#       - name: build wheel and test
-#         run: |
-#              rm *.so || true
-#              sudo apt install -y patchelf
-#              pip install build twine auditwheel
-#              python -m build .
-#              python -m twine check dist/*.whl
-#              python -m auditwheel repair dist/*.whl --plat linux_x86_64 -w wheelhouse/
-#              pip install wheelhouse/*.whl
-#              python -m pyspqr.test
+      - name: build wheel and test
+        run: |
+             rm *.so || true
+             sudo apt install -y patchelf
+             pip install build twine auditwheel
+             python -m build .
+             python -m twine check dist/*.whl
+             python -m auditwheel repair dist/*.whl --plat linux_x86_64 -w wheelhouse/
+             pip install wheelhouse/*.whl
+             python -m pyspqr.test

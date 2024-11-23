@@ -30,8 +30,8 @@ def pkgconfig(package, kw):
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
     return kw
 
-# We hardcode these; That's the default location by make install SuiteSparse;
-# SuiteSparse on Windows compiled with MSVC doesn't create pkg-config stubs
+# We hardcode these; That's the default location that the "make install" by
+# SuiteSparse; chooses. No luck using pkg-config :(
 _suitesparse_components = [
     'SPQR', 'CHOLMOD', 'AMD', 'CAMD', 'COLAMD', 'CCOLAMD', 'SuiteSparseConfig']
 if platform.system() == "Windows":
