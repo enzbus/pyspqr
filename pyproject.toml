@@ -162,7 +162,7 @@ repair-wheel-command = [
 select = "*-win_*"
 inherit.before-all = "append"
 # this is CONDA_ROOT; not sure how to set it automatically
-environment = { BLAS_ROOT="C:\Users\runneradmin\miniconda3" }
+environment = { BLAS_ROOT="C:\\Users\\runneradmin\\miniconda3" }
 before-all = [
   "echo $BLAS_ROOT",
   "conda info --all",
