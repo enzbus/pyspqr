@@ -46,13 +46,6 @@ archs = [
   "aarch64",
 ]
 
-[tool.cibuildwheel.windows]
-# For some reason this MKL dll doesn't get installed
-repair-wheel-command = [
-  "pip install delvewheel",
-  "delvewheel repair -vv --include mkl_intel_thread.2.dll -w {dest_dir} {wheel}"
-]
-
 [[tool.cibuildwheel.overrides]]
 select = "*-manylinux_x86_64"
 inherit.before-all = "append"
@@ -194,3 +187,9 @@ before-all = [
   "make install",
   "cd ../..",
   ]
+
+[tool.cibuildwheel.windows]
+repair-wheel-command = [
+  "pip install delvewheel",
+  "delvewheel repair -w {dest_dir} {wheel}"
+]

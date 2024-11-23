@@ -32,16 +32,16 @@ def pkgconfig(package, kw):
 
 # We hardcode these; That's the default location by make install SuiteSparse;
 # SuiteSparse on Windows compiled with MSVC doesn't create pkg-config stubs
+_suitesparse_components = [
+    'SPQR', 'CHOLMOD', 'AMD', 'CAMD', 'COLAMD', 'CCOLAMD', 'SuiteSparseConfig']
 if platform.system() == "Windows":
     kw = {
         'include_dirs':[
             f"C:\\Program Files (x86)\\{component}\\include\\suitesparse"
-            for component in
-                ['SPQR', 'CHOLMOD', 'AMD', 'COLAMD', 'SuiteSparseConfig']],
+            for component in _suitesparse_components],
         'library_dirs':[
-            f"C:\\Program Files (x86)\\{component}\\lib"
-            for component in
-                ['SPQR', 'CHOLMOD', 'AMD', 'COLAMD', 'SuiteSparseConfig']],
+            f"C:\\Program Files (x86)\\{component}\\bin"
+            for component in _suitesparse_components],
         'libraries':["cholmod", "spqr"]}
 else:
     kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
