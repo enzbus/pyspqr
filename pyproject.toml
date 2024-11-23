@@ -1,6 +1,6 @@
 [project]
 name = "pyspqr"
-version = "0.0.2"
+version = "0.1.0"
 description = "Python bindings for SuiteSparseQR."
 license = {text = "GPLv3"}
 readme = "README.rst"
@@ -22,6 +22,10 @@ Repository = "https://github.com/enzbus/pyspqr"
 # these have been selected by hand, whitespaces and empty lines
 select = ["W291","W292","W293","W391","E231","E225","E303"]
 
+##############
+# CIBUILDWHEEL
+##############
+
 [tool.cibuildwheel]
 skip = [
   "pp*", # Disable building PyPy wheels on all platforms
@@ -37,6 +41,18 @@ test-command = [
   "echo wheel installed successfully",
   "python -m pyspqr.test",
 ]
+
+[[tool.cibuildwheel.overrides]]
+select = "*"
+inherit.repair-wheel-command = "append"
+repair-wheel-command = [
+  "pipx run abi3audit --strict --report {wheel}",
+]
+
+#######
+# LINUX
+#######
+
 # we use the newer image for aarch64, for this there are openblas dev libraries
 manylinux-aarch64-image = "manylinux_2_28"
 
@@ -108,7 +124,11 @@ before-all = [
 "pkg-config --libs --cflags CHOLMOD",
 ]
 
-# sadly duplicated because we need sudo on mac
+########
+# MACOSX
+########
+
+# we need sudo on mac
 [[tool.cibuildwheel.overrides]]
 select = "*macosx*"
 inherit.before-all = "append"
@@ -143,13 +163,9 @@ before-all = [
 "pkg-config --libs --cflags CHOLMOD",
 ]
 
-[[tool.cibuildwheel.overrides]]
-select = "*"
-inherit.repair-wheel-command = "append"
-repair-wheel-command = [
-  "pipx run abi3audit --strict --report {wheel}",
-]
-
+#########
+# WINDOWS
+#########
 
 [[tool.cibuildwheel.overrides]]
 select = "*-win_*"

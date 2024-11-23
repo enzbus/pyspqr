@@ -36,17 +36,19 @@ _suitesparse_components = [
     'SPQR', 'CHOLMOD', 'AMD', 'CAMD', 'COLAMD', 'CCOLAMD', 'SuiteSparseConfig']
 if platform.system() == "Windows":
     kw = {
-        'include_dirs':[
+        'include_dirs': [
             f"C:\\Program Files (x86)\\{component}\\include\\suitesparse"
             for component in _suitesparse_components],
-        'library_dirs':[ # unclear if the DLL's are used at build time
+        'library_dirs': [ # unclear if the DLL's are used at build time
             f"C:\\Program Files (x86)\\{component}\\bin"
             for component in _suitesparse_components]
             + [f"C:\\Program Files (x86)\\{component}\\lib"
                for component in _suitesparse_components],
-        'libraries':["libcholmod", "libspqr"]}
+        # this is super important; compiling with MinGW we get lib*.dll files
+        # if switch to MSVC then use "cholmod" and "spqr"
+        'libraries': ["libcholmod", "libspqr"]}
 else:
-    kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
+    kw = {'include_dirs': [], 'library_dirs': [], 'libraries': []}
 kw['include_dirs'].append(numpy.get_include())
 pkgconfig('SPQR', kw)
 pkgconfig('CHOLMOD', kw)
