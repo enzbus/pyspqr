@@ -14,11 +14,10 @@
 # You should have received a copy of the GNU General Public License along with
 # Pyspqr. If not, see <https://www.gnu.org/licenses/>.
 """Unit tests for pyspqr."""
-from unittest import TestCase, main
+from unittest import TestCase
 import scipy as sp
 import numpy as np
 from pyspqr import qr
-from .test_extension import TestSuiteSparseQRExtension
 
 # we use exact equality rounding to these many digits
 N_DIGITS_TEST = 10
@@ -40,22 +39,38 @@ class TestSuiteSparseQR(TestCase):
             list(np.round(A.T @ x, N_DIGITS_TEST)),
             list(np.round(E.T @ (R.T @ (Q.T @ x)), N_DIGITS_TEST)))
 
+    def _qr_check(self, A):
+        """Base test for given matrix."""
+        for ordering in [
+            # 'FIXED', # fix, NULL permutation
+            'NATURAL',
+            'COLAMD',
+            # 'GIVEN', # fix, NULL permutation
+            'CHOLMOD',
+            'AMD',
+            'METIS',
+            'DEFAULT',
+            'BEST',
+            'BESTAMD',
+        ]:
+            Q, R, E = qr(A, ordering)
+            self._check_fwd_mult(A, Q, R, E)
+            self._check_bwd_mult(A, Q, R, E)
+
+
     def test_corner(self):
         """Test with some corner cases."""
 
         # empty matrix
         for m, n in ((10, 10), (10, 5), (5, 10)):
             A = sp.sparse.csc_matrix((m, n))
-            Q, R, E = qr(A)
-            self._check_fwd_mult(A, Q, R, E)
-            self._check_bwd_mult(A, Q, R, E)
+            self._qr_check(A)
 
         # super few entries matrix
         for m, n in ((10, 10), (10, 20), (20, 10)):
             A = sp.sparse.random(m, n, density=0.01, format='csc')
-            Q, R, E = qr(A)
-            self._check_fwd_mult(A, Q, R, E)
-            self._check_bwd_mult(A, Q, R, E)
+            self._qr_check(A)
+
 
     def test_dense(self):
         """Test with dense matrices."""
@@ -64,9 +79,8 @@ class TestSuiteSparseQR(TestCase):
 
             np.random.seed(0)
             A = sp.sparse.random(m, n, density=1., format='csc')
-            Q, R, E = qr(A)
-            self._check_fwd_mult(A, Q, R, E)
-            self._check_bwd_mult(A, Q, R, E)
+            self._qr_check(A)
+
 
     def test_big_sparse(self):
         """Test with random big sparse."""
@@ -74,9 +88,4 @@ class TestSuiteSparseQR(TestCase):
         for m, n in [(1000, 1000), (1000, 200), (200, 1000)]:
             np.random.seed(0)
             A = sp.sparse.random(m, n, density = 0.01, format='csc')
-            Q, R, E = qr(A)
-            self._check_fwd_mult(A, Q, R, E)
-            self._check_bwd_mult(A, Q, R, E)
-
-if __name__ == '__main__':
-    main()
+            self._qr_check(A)

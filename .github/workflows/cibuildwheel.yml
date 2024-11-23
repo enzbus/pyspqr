@@ -31,7 +31,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           miniconda-version: "latest"
-          channels: conda-forge, anaconda
+          channels: conda-forge, anaconda, defaults
           auto-activate-base: true
           activate-environment: ""
 

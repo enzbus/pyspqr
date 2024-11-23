@@ -15,6 +15,9 @@ dev = ["build", "twine", "auditwheel", "rstcheck", "wheel", "abi3audit"]
 requires = ["setuptools", "numpy>=2.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["pyspqr", "pyspqr.tests"]
+
 [project.urls]
 Repository = "https://github.com/enzbus/pyspqr"
 
@@ -39,7 +42,7 @@ skip = [
 ]
 test-command = [
   "echo wheel installed successfully",
-  "python -m pyspqr.test",
+  "python -m pyspqr.tests",
 ]
 
 [[tool.cibuildwheel.overrides]]
@@ -128,18 +131,17 @@ before-all = [
 # MACOSX
 ########
 
-# we need sudo on mac
+# There's also extra configurations in the MacOS/OpenMP block in the yaml file
+
 [[tool.cibuildwheel.overrides]]
 select = "*macosx*"
 inherit.before-all = "append"
-# following dependency tree has been found manually; can also compile the whole
-# thing but some components take more time and aren't used by SPQR
 before-all = [
 "echo $OpenMP_ROOT",
 "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
 "cd SuiteSparse/SuiteSparse_config",
 "make",
-"sudo make install",
+"sudo make install", # we need sudo on mac
 "cd ../AMD",
 "make",
 "sudo make install",

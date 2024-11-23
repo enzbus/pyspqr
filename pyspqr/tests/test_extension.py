@@ -28,6 +28,26 @@ class TestSuiteSparseQRExtension(TestCase):
         """Test import."""
         import _pyspqr
 
+    def test_qr_valid(self):
+        """Test on a simple matrix."""
+        
+
+        m = 2
+        n = 3
+        # a = sp.sparse.rand(2,3,.99,'csc')
+        # a.data, a.indices, a.indptr
+        data = np.array([0.56080895, 0.38371089, 0.10165425, 0.61134812, 0.60591158, 0.27545353])
+        indices = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
+        indptr = np.array([0, 2, 4, 6], dtype=np.int32)
+
+        from _pyspqr import qr
+
+        for ordering in range(10):
+            if ordering in [0,3]:
+                continue # TODO: fix, both give NULL permutation E
+            result = qr(m, n, data, indices, indptr, ordering)
+            print(result)
+
     def test_qr_inputs(self):
         "Input checking for QR function."
 
@@ -39,15 +59,15 @@ class TestSuiteSparseQRExtension(TestCase):
         indices = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
         indptr = np.array([0, 2, 4, 6], dtype=np.int32)
 
+        ordering = 5 # AMD
+
         from _pyspqr import qr
-        result = qr(m, n, data, indices, indptr)
-        print(result)
 
         with self.assertRaises(TypeError):
-            qr(m + .1, n, data, indices, indptr)
+            qr(m + .1, n, data, indices, indptr, ordering)
 
         with self.assertRaises(TypeError):
-            qr(m, 'hi', data, indices, indptr)
+            qr(m, 'hi', data, indices, indptr, ordering)
 
         with self.assertRaises(TypeError):
             qr(data)
@@ -56,25 +76,25 @@ class TestSuiteSparseQRExtension(TestCase):
             qr(data, indices)
 
         with self.assertRaises(TypeError):
-            qr(m, n, data.astype(int), indices, indptr)
+            qr(m, n, data.astype(int), indices, indptr, ordering)
 
         with self.assertRaises(TypeError):
-            qr(m, n, data, indices.astype(int), indptr)
+            qr(m, n, data, indices.astype(int), indptr, ordering)
 
         with self.assertRaises(TypeError):
-            qr(m, n, data, indices, indptr.astype(int))
+            qr(m, n, data, indices, indptr.astype(int), ordering)
 
         with self.assertRaises(TypeError):
-            qr(m, n, data[::2], indices, indptr)
+            qr(m, n, data[::2], indices, indptr, ordering)
 
         with self.assertRaises(TypeError):
-            qr(m, n, data, indices[::2], indptr)
+            qr(m, n, data, indices[::2], indptr, ordering)
 
         with self.assertRaises(TypeError):
-            qr(m, n, data, indices, indptr[::2])
+            qr(m, n, data, indices, indptr[::2], ordering)
 
         with self.assertRaises(ValueError):
-            qr(m, n, data, indices[:-1], indptr)
+            qr(m, n, data, indices[:-1], indptr, ordering)
 
     def test_wrong_CSC_format_inputs(self):
         "Check errors caught by SuiteSparse input validation."
@@ -87,26 +107,28 @@ class TestSuiteSparseQRExtension(TestCase):
         indices = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
         indptr = np.array([0, 2, 4, 6], dtype=np.int32)
 
+        ordering = 5 # AMD
+
         from _pyspqr import qr
         with self.assertRaises(ValueError):
             _indptr = np.array([0, 4, 4, 6], dtype=np.int32)
-            qr(m, n, data, indices, _indptr)
+            qr(m, n, data, indices, _indptr, ordering)
 
         with self.assertRaises(ValueError):
             _indptr = np.array([0, 4, 2, 6], dtype=np.int32)
-            qr(m, n, data, indices, _indptr)
+            qr(m, n, data, indices, _indptr, ordering)
 
         with self.assertRaises(ValueError):
             _indptr = np.array([0, 8, 10, 20], dtype=np.int32)
-            qr(m, n, data, indices, _indptr)
+            qr(m, n, data, indices, _indptr, ordering)
 
         with self.assertRaises(ValueError):
             _indices = np.array([-1, 1, 0, 1, 0, 1], dtype=np.int32)
-            qr(m, n, data, _indices, indptr)
+            qr(m, n, data, _indices, indptr, ordering)
 
         with self.assertRaises(ValueError):
             _indices = np.array([2, 1, 0, 1, 0, 1], dtype=np.int32)
-            qr(m, n, data, _indices, indptr)
+            qr(m, n, data, _indices, indptr, ordering)
 
 
 if __name__ == '__main__':

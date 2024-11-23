@@ -76,7 +76,7 @@ jobs:
       - name: test
         run: |
              pip install scipy
-             LD_LIBRARY_PATH=/usr/local/lib python -m pyspqr.test
+             LD_LIBRARY_PATH=/usr/local/lib python -m pyspqr.tests
 
       - name: build wheel and test
         run: |
@@ -87,4 +87,4 @@ jobs:
              python -m twine check dist/*.whl
              python -m auditwheel repair dist/*.whl --plat linux_x86_64 -w wheelhouse/
              pip install wheelhouse/*.whl
-             python -m pyspqr.test
+             python -m pyspqr.tests

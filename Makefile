@@ -29,12 +29,12 @@ _pyspqr.so: _pyspqr.c
 	gcc _pyspqr.c -shared -o _pyspqr.so $(CCFLAGS) $(PYTHON_INCLUDE) $(NUMPY_INCLUDE) $(SPQR_INCLUDE) $(CHOLMOD_INCLUDE)
 
 test: _pyspqr.so
-	python -m pyspqr.test
+	python -m pyspqr.tests
 
 valgrind: CCFLAGS += -g -O0
 valgrind: clean _pyspqr.so
 	valgrind $(VALGRIND_FLAGS) python -c "import _pyspqr"
-	cp pyspqr/test_extension.py .
+	cp pyspqr/tests/test_extension.py .
 	valgrind $(VALGRIND_FLAGS) python test_extension.py
 	rm test_extension.py
 
@@ -48,7 +48,7 @@ build: env clean
 env: clean
 	python -m venv $(VENV_FLAGS) env
 	env/bin/pip install -e .[dev]
-	env/bin/python -m pyspqr.test
+	env/bin/python -m pyspqr.tests
 
 clean:
 	rm *.so || true

@@ -23,6 +23,20 @@ from _pyspqr import qr as _qr
 
 __all__ = ['qr', 'HouseholderOrthogonal', 'Permutation']
 
+# See https://github.com/DrTimothyAldenDavis/SuiteSparse/blob/8ac3f515ad91ae3d0137fe98239e52d2a689eac3/SPQR/Include/SuiteSparseQR_definitions.h#L15
+_ORDERINGS = (
+    # ('FIXED', 0),
+    ('NATURAL', 1),
+    ('COLAMD', 2),
+    # ('GIVEN', 3), 
+    ('CHOLMOD', 4),
+    ('AMD', 5),
+    ('METIS', 6),
+    ('DEFAULT', 7),
+    ('BEST', 8),
+    ('BESTAMD', 9),
+)
+
 
 class HouseholderOrthogonal(sp.sparse.linalg.LinearOperator):
     """Orthogonal linear operator with Householder reflections."""
@@ -93,12 +107,12 @@ def _make_csc_matrix(m, n, data, indices, indptr):
 
     return sp.sparse.csc_matrix((data, indices, indptr), shape=(m, n))
 
-def qr(matrix: sp.sparse.csc_matrix):
+def qr(matrix: sp.sparse.csc_matrix, ordering='AMD'):
     """Factorize Scipy sparse CSC matrix."""
     matrix = sp.sparse.csc_matrix(matrix)
     r_tuple, h_tuple, h_pinv, h_tau, e = _qr(
         matrix.shape[0], matrix.shape[1], matrix.data, matrix.indices,
-        matrix.indptr)
+        matrix.indptr, dict(_ORDERINGS)[ordering])
     r_csc = _make_csc_matrix(*r_tuple)
     h_csc = _make_csc_matrix(*h_tuple)
     q = HouseholderOrthogonal(h_csc, h_tau, h_pinv)

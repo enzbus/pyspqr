@@ -190,13 +190,14 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
 
     int m;
     int n;
+    int ordering;
     PyArrayObject *data_np;
     PyArrayObject *indices_np;
     PyArrayObject *indptr_np;
 
     /*Parse and validate inputs.*/
 
-    PyArg_ParseTuple(args, "iiOOO", &m, &n, &data_np, &indices_np, &indptr_np);
+    PyArg_ParseTuple(args, "iiOOOi", &m, &n, &data_np, &indices_np, &indptr_np, &ordering);
     
     if (PyErr_Occurred()) {
         return NULL;
@@ -313,7 +314,7 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     rank = SuiteSparseQR_i_C /* returns rank(A) estimate, (-1) if failure */
 (
     /* inputs: */
-    SPQR_ORDERING_AMD, //int ordering,               /* all, except 3:given treated as 0:fixed */
+    ordering, //int ordering,               /* all, except 3:given treated as 0:fixed */
     0., //double tol,                 /* columns with 2-norm <= tol treated as 0 */
     m, //int32_t econ,               /* e = max(min(m,econ),rank(A)) */
     0, //int getCTX,                 /* 0: Z=C (e-by-k), 1: Z=C', 2: Z=X (e-by-k) */
