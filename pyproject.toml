@@ -173,7 +173,7 @@ before-all = [
   "mkdir openblas",
   "tar -xf OpenBLAS-0.3.28-x64-64.zip -C openblas",
   "ls -hal",
-  "ls -hal openblas"
+  "ls -hal openblas",
   "exit_here",
   "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
   "cd SuiteSparse/SuiteSparse_config",
