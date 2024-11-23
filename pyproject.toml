@@ -35,7 +35,7 @@ skip = [
 ]
 test-command = [
   "echo wheel installed successfully",
-  "python -m pyspqr.test"
+  "python -m pyspqr.test",
 ]
 # we use the newer image for aarch64, for this there are openblas dev libraries
 manylinux-aarch64-image = "manylinux_2_28"
@@ -44,13 +44,6 @@ manylinux-aarch64-image = "manylinux_2_28"
 archs = [
   "x86_64",
   "aarch64",
-]
-
-[tool.cibuildwheel.windows]
-# For some reason this MKL dll doesn't get installed
-repair-wheel-command = [
-  "pip install delvewheel",
-  "delvewheel repair -vv --include mkl_intel_thread.2.dll -w {dest_dir} {wheel}"
 ]
 
 [[tool.cibuildwheel.overrides]]
@@ -161,35 +154,41 @@ repair-wheel-command = [
 [[tool.cibuildwheel.overrides]]
 select = "*-win_*"
 inherit.before-all = "append"
-# this is CONDA_ROOT; not sure how to set it automatically
-environment = { BLAS_ROOT="C:\\Users\\runneradmin\\miniconda3" }
+environment = { BLAS_ROOT='C:/Users/runneradmin/miniconda3/Library', LAPACK_ROOT='C:/Users/runneradmin/miniconda3/Library', CMAKE_GENERATOR="MinGW Makefiles"}
+# couldn't get that -D option to work via environment variable :(
 before-all = [
-  "echo $BLAS_ROOT",
   "conda info --all",
-  "conda install -y openblas pkgconfig",
+  'ls -hal C:\Users\runneradmin\miniconda3\Library',
+  'ls -hal C:\Users\runneradmin\miniconda3\Library\lib',
   "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
   "cd SuiteSparse/SuiteSparse_config",
-  "make",
+  'cd build && cmake .. -DCMAKE_GNUtoMS=ON && cmake --build . --config Release -j8 && cd ..',
   "make install",
   "cd ../AMD",
-  "make",
+  'cd build && cmake .. -DCMAKE_GNUtoMS=ON && cmake --build . --config Release -j8 && cd ..',
   "make install",
   "cd ../COLAMD",
-  "make",
+  'cd build && cmake .. -DCMAKE_GNUtoMS=ON && cmake --build . --config Release -j8 && cd ..',
   "make install",
   "cd ../CAMD",
-  "make",
+  'cd build && cmake .. -DCMAKE_GNUtoMS=ON && cmake --build . --config Release -j8 && cd ..',
   "make install",
   "cd ../CCOLAMD",
-  "make",
+  'cd build && cmake .. -DCMAKE_GNUtoMS=ON && cmake --build . --config Release -j8 && cd ..',
   "make install",
   "cd ../CHOLMOD",
-  "make",
+  'cd build && cmake .. -DCMAKE_GNUtoMS=ON && cmake --build . --config Release -j8 && cd ..',
   "make install",
   "cd ../SPQR",
-  "make",
+  'cd build && cmake .. -DCMAKE_GNUtoMS=ON && cmake --build . --config Release -j8 && cd ..',
   "make install",
   "cd ../..",
-  "pkg-config --libs --cflags SPQR",
-  "pkg-config --libs --cflags CHOLMOD",
+  # "pkg-config --libs --cflags SPQR",
+  # "pkg-config --libs --cflags CHOLMOD",
   ]
+
+[tool.cibuildwheel.windows]
+repair-wheel-command = [
+  "pip install delvewheel", # paths below are default by make install SuiteSparse
+  '''delvewheel repair -vv --add-path "C:\Program Files (x86)\AMD\bin;C:\Program Files (x86)\CAMD\bin;C:\Program Files (x86)\CCOLAMD\bin;C:\Program Files (x86)\COLAMD\bin;C:\Program Files (x86)\SuiteSparseConfig\bin;C:\Program Files (x86)\CHOLMOD\bin;C:\Program Files (x86)\SPQR\bin;C:\Users\runneradmin\miniconda3\Library\bin" -w {dest_dir} {wheel}'''
+]

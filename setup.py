@@ -30,15 +30,21 @@ def pkgconfig(package, kw):
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
     return kw
 
-# we pick up Conda SuiteSparse on Windows, in GitHub CI
-# see here https://docs.conda.io/projects/conda-build/en/latest/resources/use-shared-libraries.html
-if ("CONDA_PREFIX" in os.environ) and (platform.system() == "Windows"):
+# We hardcode these; That's the default location that the "make install" by
+# SuiteSparse; chooses. No luck using pkg-config :(
+_suitesparse_components = [
+    'SPQR', 'CHOLMOD', 'AMD', 'CAMD', 'COLAMD', 'CCOLAMD', 'SuiteSparseConfig']
+if platform.system() == "Windows":
     kw = {
-        'include_dirs':[f"{os.environ['CONDA_PREFIX']}\\Library\\include\\suitesparse"],
-        'library_dirs':[
-            f"{os.environ['CONDA_PREFIX']}\\Library\\lib",
-            f"{os.environ['CONDA_PREFIX']}\\Library\\bin"],
-        'libraries':["cholmod", "spqr"]}
+        'include_dirs':[
+            f"C:\\Program Files (x86)\\{component}\\include\\suitesparse"
+            for component in _suitesparse_components],
+        'library_dirs':[ # unclear if the DLL's are used at build time
+            f"C:\\Program Files (x86)\\{component}\\bin"
+            for component in _suitesparse_components]
+            + [f"C:\\Program Files (x86)\\{component}\\lib"
+               for component in _suitesparse_components],
+        'libraries':["libcholmod", "libspqr"]}
 else:
     kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
 kw['include_dirs'].append(numpy.get_include())
