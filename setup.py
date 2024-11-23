@@ -30,14 +30,16 @@ def pkgconfig(package, kw):
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
     return kw
 
-# we pick up Conda SuiteSparse on Windows, in GitHub CI
-# see here https://docs.conda.io/projects/conda-build/en/latest/resources/use-shared-libraries.html
-if ("CONDA_PREFIX" in os.environ) and (platform.system() == "Windows"):
+# We hardcode these; That's the default location by make install SuiteSparse;
+# SuiteSparse on Windows compiled with MSVC doesn't create pkg-config stubs
+if platform.system() == "Windows":
     kw = {
-        'include_dirs':[f"{os.environ['CONDA_PREFIX']}\\Library\\include\\suitesparse"],
+        'include_dirs':[
+            "C:\\Program Files (x86)\\CHOLMOD\\include\\suitesparse",
+            "C:\\Program Files (x86)\\SPQR\\include\\suitesparse"],
         'library_dirs':[
-            f"{os.environ['CONDA_PREFIX']}\\Library\\lib",
-            f"{os.environ['CONDA_PREFIX']}\\Library\\bin"],
+            "C:\\Program Files (x86)\\CHOLMOD\\lib",
+            "C:\\Program Files (x86)\\SPQR\\lib"],
         'libraries':["cholmod", "spqr"]}
 else:
     kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
