@@ -154,7 +154,7 @@ repair-wheel-command = [
 [[tool.cibuildwheel.overrides]]
 select = "*-win_*"
 inherit.before-all = "append"
-environment = { BLAS_ROOT='C:/Users/runneradmin/miniconda3/Library', LAPACK_ROOT='C:/Users/runneradmin/miniconda3/Library', CMAKE_GENERATOR="MinGW Makefiles"}
+environment = { BLAS_ROOT='C:/Users/runneradmin/miniconda3/Library', CMAKE_GNUtoMS=1, LAPACK_ROOT='C:/Users/runneradmin/miniconda3/Library', CMAKE_GENERATOR="MinGW Makefiles"}
 before-all = [
   "conda info --all",
   'ls -hal C:\Users\runneradmin\miniconda3\Library',
@@ -182,6 +182,8 @@ before-all = [
   "make",
   "make install",
   "cd ../..",
+  "pkg-config --libs --cflags SPQR",
+  "pkg-config --libs --cflags CHOLMOD",
   ]
 
 [tool.cibuildwheel.windows]
