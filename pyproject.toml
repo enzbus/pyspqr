@@ -154,15 +154,9 @@ repair-wheel-command = [
 [[tool.cibuildwheel.overrides]]
 select = "*-win_*"
 inherit.before-all = "append"
-environment = { BLAS_ROOT="C:\\openblas", LAPACK_ROOT="C:\\openblas", CMAKE_GENERATOR="MinGW Makefiles"}
+environment = { BLAS_ROOT='C:\Users\runneradmin\miniconda3\Library', LAPACK_ROOT='C:\Users\runneradmin\miniconda3\Library', CMAKE_GENERATOR="MinGW Makefiles"}
 before-all = [
-  "pwd",
-  "choco install -r --no-progress wget",
-  "wget -q https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.28/OpenBLAS-0.3.28-x64-64.zip",
-  "mkdir C:\\openblas",
-  "tar -xf OpenBLAS-0.3.28-x64-64.zip -C C:\\openblas",
-  "ls -hal",
-  "ls -hal C:\\openblas",
+  "conda info --all",
   "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
   "cd SuiteSparse/SuiteSparse_config",
   "make",
