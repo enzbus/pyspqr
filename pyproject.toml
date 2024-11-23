@@ -88,7 +88,7 @@ inherit.before-all = "append"
 # following dependency tree has been found manually; can also compile the whole
 # thing but some components take more time and aren't used by SPQR
 before-all = [
-"git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
+"git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
 "cd SuiteSparse/SuiteSparse_config",
 "make",
 "make install",
@@ -123,7 +123,7 @@ inherit.before-all = "append"
 # thing but some components take more time and aren't used by SPQR
 before-all = [
 "echo $OpenMP_ROOT",
-"git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
+"git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
 "cd SuiteSparse/SuiteSparse_config",
 "make",
 "sudo make install",
@@ -151,13 +151,44 @@ before-all = [
 ]
 
 [[tool.cibuildwheel.overrides]]
-select = "*-win_*"
-inherit.before-all = "append"
-before-all = ["conda info --all"]
-
-[[tool.cibuildwheel.overrides]]
 select = "*"
 inherit.repair-wheel-command = "append"
 repair-wheel-command = [
   "pipx run abi3audit --strict --report {wheel}",
 ]
+
+
+[[tool.cibuildwheel.overrides]]
+select = "*-win_*"
+inherit.before-all = "append"
+# following dependency tree has been found manually; can also compile the whole
+# thing but some components take more time and aren't used by SPQR
+before-all = [
+  "conda info --all",
+  "conda install -y openblas pkgconfig",
+  "git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git",
+  "cd SuiteSparse/SuiteSparse_config",
+  "make",
+  "make install",
+  "cd ../AMD",
+  "make",
+  "make install",
+  "cd ../COLAMD",
+  "make",
+  "make install",
+  "cd ../CAMD",
+  "make",
+  "make install",
+  "cd ../CCOLAMD",
+  "make",
+  "make install",
+  "cd ../CHOLMOD",
+  "make",
+  "make install",
+  "cd ../SPQR",
+  "make",
+  "make install",
+  "cd ../..",
+  "pkg-config --libs --cflags SPQR",
+  "pkg-config --libs --cflags CHOLMOD",
+  ]

@@ -18,7 +18,7 @@ jobs:
             python-version: '3.12'
 
       - name: clone SuiteSparse
-        run: git clone -b stable --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
+        run: git clone -b v7.8.3 --depth 1 https://github.com/DrTimothyAldenDavis/SuiteSparse.git
 
       # stuff to compile suitesparse; can also go with netlib BLAS/LAPACK, but
       # CHOLMOD uses LAPACK for supernodal ops, better to have a good one

@@ -60,7 +60,7 @@ class TestSuiteSparseQR(TestCase):
     def test_dense(self):
         """Test with dense matrices."""
 
-        for m, n in [(10, 10), (10, 5), (5, 10)]:
+        for m, n in [(100, 100), (100, 50), (50, 100)]:
 
             np.random.seed(0)
             A = sp.sparse.random(m, n, density=1., format='csc')
