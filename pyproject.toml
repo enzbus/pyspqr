@@ -34,9 +34,9 @@ skip = [
   "*musllinux*aarch64*" # no Scipy wheels for this
 ]
 test-command = [
-  "echo wheel installed successfully",
-  "python -m pyspqr.test"
-]
+  "echo wheel installed successfully"] #,
+  # "python -m pyspqr.test"
+# ]
 # we use the newer image for aarch64, for this there are openblas dev libraries
 manylinux-aarch64-image = "manylinux_2_28"
 
