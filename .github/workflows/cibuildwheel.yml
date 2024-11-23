@@ -20,12 +20,12 @@ jobs:
         with:
           platforms: all
 
-      - name: Install conda on Windows
-        if: runner.os == 'Windows'
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          miniconda-version: "latest"
-          channels: conda-forge, anaconda
+      # - name: Install conda on Windows
+      #   if: runner.os == 'Windows'
+      #   uses: conda-incubator/setup-miniconda@v3
+      #   with:
+      #     miniconda-version: "latest"
+      #     channels: conda-forge, anaconda
 
       # it appears conda suitesparse on win doesn't have pkg-config files
       # but it's a very recent version; we use openblas because mkl doesn't
