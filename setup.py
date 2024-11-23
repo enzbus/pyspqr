@@ -35,11 +35,13 @@ def pkgconfig(package, kw):
 if platform.system() == "Windows":
     kw = {
         'include_dirs':[
-            "C:\\Program Files (x86)\\CHOLMOD\\include\\suitesparse",
-            "C:\\Program Files (x86)\\SPQR\\include\\suitesparse"],
+            f"C:\\Program Files (x86)\\{component}\\include\\suitesparse"
+            for component in
+                ['SPQR', 'CHOLMOD', 'AMD', 'COLAMD', 'SuiteSparseConfig']],
         'library_dirs':[
-            "C:\\Program Files (x86)\\CHOLMOD\\lib",
-            "C:\\Program Files (x86)\\SPQR\\lib"],
+            f"C:\\Program Files (x86)\\{component}\\lib"
+            for component in
+                ['SPQR', 'CHOLMOD', 'AMD', 'COLAMD', 'SuiteSparseConfig']],
         'libraries':["cholmod", "spqr"]}
 else:
     kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
