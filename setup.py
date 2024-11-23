@@ -39,9 +39,11 @@ if platform.system() == "Windows":
         'include_dirs':[
             f"C:\\Program Files (x86)\\{component}\\include\\suitesparse"
             for component in _suitesparse_components],
-        'library_dirs':[
+        'library_dirs':[ # unclear if the DLL's are used at build time
             f"C:\\Program Files (x86)\\{component}\\bin"
-            for component in _suitesparse_components],
+            for component in _suitesparse_components]
+            + [f"C:\\Program Files (x86)\\{component}\\lib"
+               for component in _suitesparse_components],
         'libraries':["cholmod", "spqr"]}
 else:
     kw = {'include_dirs':[], 'library_dirs':[], 'libraries':[]}
