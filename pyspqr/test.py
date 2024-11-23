@@ -20,6 +20,8 @@ import numpy as np
 from pyspqr import qr
 from .test_extension import TestSuiteSparseQRExtension
 
+# we use exact equality rounding to these many digits
+N_DIGITS_TEST = 8
 
 class TestSuiteSparseQR(TestCase):
     """Unit tests for pyspqr."""
@@ -27,12 +29,16 @@ class TestSuiteSparseQR(TestCase):
     def _check_fwd_mult(self, A, Q, R, E):
         """Check forward multiplication."""
         x = np.random.randn(A.shape[1])
-        self.assertTrue(np.allclose(A @ x, Q @ (R @ (E @ x))))
+        self.assertListEqual(
+            list(np.round(A @ x, N_DIGITS_TEST)),
+            list(np.round(Q @ (R @ (E @ x)), N_DIGITS_TEST)))
 
     def _check_bwd_mult(self, A, Q, R, E):
         """Check backward multiplication."""
         x = np.random.randn(A.shape[0])
-        self.assertTrue(np.allclose(A.T @ x, E.T @ (R.T @ (Q.T @ x))))
+        self.assertListEqual(
+            list(np.round(A.T @ x, N_DIGITS_TEST)),
+            list(np.round(E.T @ (R.T @ (Q.T @ x)), N_DIGITS_TEST)))
 
     def test_corner(self):
         """Test with some corner cases."""

@@ -83,9 +83,7 @@ def _make_csc_matrix(m, n, data, indices, indptr):
     """
 
     # empty matrix, no rows or no columns; OR data = [0.]; latter is important
-    # to catch empty matrix
     if (n == 0) or (m == 0) or ((len(data) == 1) and (data[0] == 0.)):
-        # the three vectors are either empty or have a spurious entry
         return sp.sparse.csc_matrix((m, n), dtype=float)
 
     # in non-empty case, SuiteSparse doesn't store the last element of indptr,
