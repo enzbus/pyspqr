@@ -167,7 +167,6 @@ environment = { BLAS_ROOT="C:\\openblas" }
 # "conda info --all",
 # "conda install -y openblas pkgconfig",
 before-all = [
-  "ls Env:",
   "pwd",
   "choco install -r --no-progress wget",
   "wget -q https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.28/OpenBLAS-0.3.28-x64-64.zip",
