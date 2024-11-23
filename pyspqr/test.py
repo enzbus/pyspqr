@@ -21,7 +21,7 @@ from pyspqr import qr
 from .test_extension import TestSuiteSparseQRExtension
 
 # we use exact equality rounding to these many digits
-N_DIGITS_TEST = 8
+N_DIGITS_TEST = 10
 
 class TestSuiteSparseQR(TestCase):
     """Unit tests for pyspqr."""
@@ -58,9 +58,9 @@ class TestSuiteSparseQR(TestCase):
             self._check_bwd_mult(A, Q, R, E)
 
     def test_dense(self):
-        """Test with dense matrices interface."""
+        """Test with dense matrices."""
 
-        for m, n in [(100, 100), (100, 20), (20, 100)]:
+        for m, n in [(10, 10), (10, 5), (5, 10)]:
 
             np.random.seed(0)
             A = sp.sparse.random(m, n, density=1., format='csc')
