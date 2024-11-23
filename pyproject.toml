@@ -161,9 +161,8 @@ repair-wheel-command = [
 [[tool.cibuildwheel.overrides]]
 select = "*-win_*"
 inherit.before-all = "append"
-# following dependency tree has been found manually; can also compile the whole
-# thing but some components take more time and aren't used by SPQR
-environment = { BLAS_ROOT="$CONDA_PREFIX" }
+# this is CONDA_ROOT; not sure how to set it automatically
+environment = { BLAS_ROOT="C:\Users\runneradmin\miniconda3" }
 before-all = [
   "echo $BLAS_ROOT",
   "conda info --all",
