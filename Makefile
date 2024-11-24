@@ -1,4 +1,4 @@
-CCFLAGS = -fPIC
+CCFLAGS = -fPIC -O3 -fopenmp-simd
 PYTHON_INCLUDE = $(shell pkg-config --cflags --libs python3)
 NUMPY_INCLUDE = -I$(shell python -c "import numpy; print(numpy.get_include())")
 SPQR_INCLUDE = $(shell pkg-config --cflags --libs SPQR)

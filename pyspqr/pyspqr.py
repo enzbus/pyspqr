@@ -48,7 +48,7 @@ def _householder_multiply_python(
 
 def _householder_multiply_C(
     vector, householder_reflections, householder_coefficients, backward=False):
-    """Householder multiplication of single vector, used to test C function."""
+    """Householder multiplication of single vector, see Python version."""
     _q_multiply(
         len(vector),
         len(householder_coefficients),
