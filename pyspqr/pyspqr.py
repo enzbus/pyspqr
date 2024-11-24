@@ -75,7 +75,7 @@ class HouseholderOrthogonal(sp.sparse.linalg.LinearOperator):
         self.permutation_array = permutation
         self.permutation_linop = Permutation(self.permutation_array)
 
-        m = len(self.permutation)
+        m = len(self.permutation_array)
         super().__init__(dtype=float, shape=(m, m))
 
 

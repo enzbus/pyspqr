@@ -19,8 +19,10 @@ import scipy as sp
 import numpy as np
 from pyspqr import qr
 
-# we use exact equality rounding to these many digits
-N_DIGITS_TEST = 8
+# We use numpy.isclose for accuracy check
+ABS_ACCURACY = 1e-14
+REL_ACCURACY = 1e-14
+
 
 class TestSuiteSparseQR(TestCase):
     """Unit tests for pyspqr."""
@@ -28,16 +30,18 @@ class TestSuiteSparseQR(TestCase):
     def _check_fwd_mult(self, A, Q, R, E):
         """Check forward multiplication."""
         x = np.random.randn(A.shape[1])
-        self.assertListEqual(
-            list(np.round(A @ x, N_DIGITS_TEST)),
-            list(np.round(Q @ (R @ (E @ x)), N_DIGITS_TEST)))
+        aprod = A @ x
+        qrprod = Q @ (R @ (E @ x))
+        self.assertTrue(
+            np.allclose(aprod, qrprod, atol=ABS_ACCURACY, rtol=REL_ACCURACY))
 
     def _check_bwd_mult(self, A, Q, R, E):
         """Check backward multiplication."""
         x = np.random.randn(A.shape[0])
-        self.assertListEqual(
-            list(np.round(A.T @ x, N_DIGITS_TEST)),
-            list(np.round(E.T @ (R.T @ (Q.T @ x)), N_DIGITS_TEST)))
+        atprod = A.T @ x
+        qrtprod = E.T @ (R.T @ (Q.T @ x))
+        self.assertTrue(
+            np.allclose(atprod, qrtprod, atol=ABS_ACCURACY, rtol=REL_ACCURACY))
 
     def _qr_check(self, A):
         """Base test for given matrix."""
