@@ -39,11 +39,20 @@ class TestSuiteSparseQRExtension(TestCase):
         indices = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
         indptr = np.array([0, 2, 4, 6], dtype=np.int32)
 
-        from _pyspqr import qr
+        from _pyspqr import qr, q_multiply
 
         for ordering in range(10):
             result = qr(m, n, data, indices, indptr, ordering)
             print(result)
+            # run the q multiplication
+            _, h_tuple, _, h_tau, _ = result
+            vector = np.ones(m, dtype=float)
+            _, _, hdata, hindices, hindptr = h_tuple
+            # sadly this needs to be done manually
+            hindptr = np.concatenate([hindptr, [len(hdata)]], dtype=np.int32)
+            q_multiply(m, len(h_tau), True, vector, h_tau, hdata, hindices, hindptr)
+            q_multiply(m, len(h_tau), False, vector, h_tau, hdata, hindices, hindptr)
+            self.assertTrue(np.allclose(vector, np.ones(2)))
 
     def test_qr_inputs(self):
         "Input checking for QR function."

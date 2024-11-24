@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import numpy as np
 import scipy as sp
-from _pyspqr import qr as _qr
+from _pyspqr import qr as _qr, q_multiply as _q_multiply
 
 __all__ = ['qr', 'HouseholderOrthogonal', 'Permutation']
 
@@ -46,19 +46,33 @@ def _householder_multiply_python(
         col = householder_reflections[:, i].todense().A1
         vector -= ((col @ vector) * coeff) * col
 
+def _householder_multiply_C(
+    vector, householder_reflections, householder_coefficients, backward=False):
+    """Householder multiplication of single vector, used to test C function."""
+    _q_multiply(
+        len(vector),
+        len(householder_coefficients),
+        backward,
+        vector,
+        householder_coefficients,
+        householder_reflections.data,
+        householder_reflections.indices,
+        householder_reflections.indptr
+    )
+
 class HouseholderOrthogonal(sp.sparse.linalg.LinearOperator):
     """Orthogonal linear operator with Householder reflections."""
 
     def _rmatvec(self, input_vector):
         result = self.permutation_linop.T @ input_vector
-        _householder_multiply_python(
+        _householder_multiply_C(
             result, self.householder_reflections,
             self.householder_coefficients, backward=False)
         return result
 
     def _matvec(self, input_vector):
         result = np.array(input_vector, copy=True)
-        _householder_multiply_python(
+        _householder_multiply_C(
             result, self.householder_reflections,
             self.householder_coefficients, backward=True)
         return self.permutation_linop @ result

@@ -162,6 +162,117 @@ create_npyarr_from_cholmod_dense1d(
 
 };
 
+static inline void * check_1d_double_arr(PyArrayObject * nparray){
+    /*Check that object is valid 1-d double array.
+    Set Python Exception and return NULL if not.*/
+
+    if (!PyArray_Check(nparray) || PyArray_NDIM(nparray) != 1 || PyArray_TYPE(nparray) != NPY_DOUBLE || !PyArray_IS_C_CONTIGUOUS(nparray)){
+        PyErr_SetString(PyExc_TypeError,
+           "Data argument must be contiguous 1-dimensional double Numpy array.");
+        return NULL;
+    }
+    return (void*)nparray;
+}
+
+static inline void * check_1d_int32_arr(PyArrayObject * nparray){
+    /*Check that object is valid 1-d int32 array.
+    Set Python Exception and return NULL if not.*/
+
+    if (!PyArray_Check(nparray) || PyArray_NDIM(nparray) != 1 || PyArray_TYPE(nparray) != NPY_INT32 || !PyArray_IS_C_CONTIGUOUS(nparray)){
+        PyErr_SetString(PyExc_TypeError,
+           "Data argument must be contiguous 1-dimensional int32 Numpy array.");
+        return NULL;
+    }
+    return (void*)nparray;
+}
+
+static inline PyObject * q_multiply(PyObject *self, PyObject *args){
+    /*Compute forward or backward multiplication by Householder reflections.*/
+
+    int m;
+    int n_reflections;
+    int backward;
+
+    PyArrayObject *vector_np;
+    PyArrayObject *householder_coefficients_np;
+    PyArrayObject *householder_reflection_data_np;
+    PyArrayObject *householder_reflection_indices_np;
+    PyArrayObject *householder_reflection_indptr_np;
+
+    double *vector;
+    double *householder_coefficients;
+    double *householder_reflection_data;
+    int *householder_reflection_indices;
+    int *householder_reflection_indptr;
+
+    PyArg_ParseTuple(args, "iiiOOOOO", &m, &n_reflections, &backward,
+        &vector_np, &householder_coefficients_np,
+        &householder_reflection_data_np,
+        &householder_reflection_indices_np,
+        &householder_reflection_indptr_np);
+
+    if (PyErr_Occurred()) {
+        return NULL;
+    }
+
+    if (check_1d_double_arr(vector_np) == NULL) {return NULL;}
+    if (check_1d_double_arr(householder_coefficients_np) == NULL) {return NULL;}
+    if (check_1d_double_arr(householder_reflection_data_np) == NULL) {return NULL;}
+    if (check_1d_int32_arr(householder_reflection_indices_np) == NULL) {return NULL;}
+    if (check_1d_int32_arr(householder_reflection_indptr_np) == NULL) {return NULL;}
+
+    vector = PyArray_DATA(vector_np);
+    householder_coefficients = PyArray_DATA(householder_coefficients_np);
+    householder_reflection_data = PyArray_DATA(householder_reflection_data_np);
+    householder_reflection_indices = PyArray_DATA(householder_reflection_indices_np);
+    householder_reflection_indptr = PyArray_DATA(householder_reflection_indptr_np);
+
+    double dot_product;
+    if (!backward){
+        for (int j = 0; j < n_reflections; j++){
+            dot_product = 0.0;
+            //printf("dot product value %f\n", dot_product);
+            //printf("%d %d\n", householder_reflection_indptr[0], householder_reflection_indptr[1]);
+            for (int k = householder_reflection_indptr[j];
+                k < householder_reflection_indptr[j+1]; k++){
+                dot_product += householder_reflection_data[k] * vector[householder_reflection_indices[k]];
+                //printf("dot product value %f\n", dot_product);
+            }
+            //printf("dot product value %f\n", dot_product);
+
+            dot_product *= householder_coefficients[j];
+
+            for (int k = householder_reflection_indptr[j];
+                k < householder_reflection_indptr[j+1]; k++){
+                vector[householder_reflection_indices[k]] -= householder_reflection_data[k] * dot_product;
+                //printf("dot product value %f\n", dot_product);
+            }
+        }
+    } else {
+        for (int j = n_reflections-1; j >= 0; j--){
+            dot_product = 0.0;
+            //printf("dot product value %f\n", dot_product);
+            //printf("%d %d\n", householder_reflection_indptr[0], householder_reflection_indptr[1]);
+            for (int k = householder_reflection_indptr[j];
+                k < householder_reflection_indptr[j+1]; k++){
+                dot_product += householder_reflection_data[k] * vector[householder_reflection_indices[k]];
+                //printf("dot product value %f\n", dot_product);
+            }
+            //printf("dot product value %f\n", dot_product);
+
+            dot_product *= householder_coefficients[j];
+
+            for (int k = householder_reflection_indptr[j];
+                k < householder_reflection_indptr[j+1]; k++){
+                vector[householder_reflection_indices[k]] -= householder_reflection_data[k] * dot_product;
+                //printf("dot product value %f\n", dot_product);
+            }
+        }
+    }
+
+    Py_RETURN_NONE;
+};
+
 static inline PyObject *qr(PyObject *self, PyObject *args){
     /* Wrap of QR factorization function in SuiteSparseQR.
     
@@ -203,23 +314,9 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    if (!PyArray_Check(data_np) || PyArray_NDIM(data_np) != 1 || PyArray_TYPE(data_np) != NPY_DOUBLE || !PyArray_IS_C_CONTIGUOUS(data_np)){
-        PyErr_SetString(PyExc_TypeError,
-           "Data argument must be contiguous 1-dimensional double Numpy array.");
-        return NULL;
-    }
-
-    if (!PyArray_Check(indices_np) || PyArray_NDIM(data_np) != 1 || PyArray_TYPE(indices_np) != NPY_INT32 || !PyArray_IS_C_CONTIGUOUS(indices_np)){
-        PyErr_SetString(PyExc_TypeError,
-            "Indices argument must be contiguous 1-dimensional int32 Numpy array.");
-        return NULL;
-    }
-
-    if (!PyArray_Check(indptr_np) || PyArray_NDIM(data_np) != 1 || PyArray_TYPE(indptr_np) != NPY_INT32 || !PyArray_IS_C_CONTIGUOUS(indptr_np)){
-        PyErr_SetString(PyExc_TypeError,
-            "Indptr argument must be contiguous 1-dimensional int32 Numpy array.");
-        return NULL;
-    }
+    if (check_1d_double_arr(data_np) == NULL) {return NULL;}
+    if (check_1d_int32_arr(indices_np) == NULL) {return NULL;}
+    if (check_1d_int32_arr(indptr_np) == NULL) {return NULL;}
 
     size_t nnz = PyArray_SIZE(data_np);
     if (nnz != PyArray_SIZE(indices_np)){
@@ -471,6 +568,12 @@ static PyMethodDef methods[] = {
         (PyCFunction) qr,
         METH_VARARGS,
         "Perform sparse QR decomposition."
+    },
+    {
+        "q_multiply",
+        (PyCFunction) q_multiply,
+        METH_VARARGS,
+        "Multiply forward or backward by sequence of Householder reflections."
     },
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
