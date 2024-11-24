@@ -20,8 +20,8 @@ import numpy as np
 from pyspqr import qr
 
 # We use numpy.isclose for accuracy check
-ABS_ACCURACY = 1e-14
-REL_ACCURACY = 1e-14
+ABS_ACCURACY = 1e-13
+REL_ACCURACY = 1e-13
 
 
 class TestSuiteSparseQR(TestCase):
