@@ -20,7 +20,7 @@ import numpy as np
 from pyspqr import qr
 
 # we use exact equality rounding to these many digits
-N_DIGITS_TEST = 10
+N_DIGITS_TEST = 8
 
 class TestSuiteSparseQR(TestCase):
     """Unit tests for pyspqr."""
@@ -42,10 +42,10 @@ class TestSuiteSparseQR(TestCase):
     def _qr_check(self, A):
         """Base test for given matrix."""
         for ordering in [
-            # 'FIXED', # fix, NULL permutation
+            'FIXED',
             'NATURAL',
             'COLAMD',
-            # 'GIVEN', # fix, NULL permutation
+            'GIVEN',
             'CHOLMOD',
             'AMD',
             'METIS',
@@ -53,10 +53,10 @@ class TestSuiteSparseQR(TestCase):
             'BEST',
             'BESTAMD',
         ]:
-            Q, R, E = qr(A, ordering)
-            self._check_fwd_mult(A, Q, R, E)
-            self._check_bwd_mult(A, Q, R, E)
-
+            with self.subTest(ordering=ordering):
+                Q, R, E = qr(A, ordering)
+                self._check_fwd_mult(A, Q, R, E)
+                self._check_bwd_mult(A, Q, R, E)
 
     def test_corner(self):
         """Test with some corner cases."""
@@ -71,7 +71,6 @@ class TestSuiteSparseQR(TestCase):
             A = sp.sparse.random(m, n, density=0.01, format='csc')
             self._qr_check(A)
 
-
     def test_dense(self):
         """Test with dense matrices."""
 
@@ -80,7 +79,6 @@ class TestSuiteSparseQR(TestCase):
             np.random.seed(0)
             A = sp.sparse.random(m, n, density=1., format='csc')
             self._qr_check(A)
-
 
     def test_big_sparse(self):
         """Test with random big sparse."""

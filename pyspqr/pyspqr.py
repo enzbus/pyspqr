@@ -25,10 +25,10 @@ __all__ = ['qr', 'HouseholderOrthogonal', 'Permutation']
 
 # See https://github.com/DrTimothyAldenDavis/SuiteSparse/blob/8ac3f515ad91ae3d0137fe98239e52d2a689eac3/SPQR/Include/SuiteSparseQR_definitions.h#L15
 _ORDERINGS = (
-    # ('FIXED', 0),
+    ('FIXED', 0),
     ('NATURAL', 1),
     ('COLAMD', 2),
-    # ('GIVEN', 3), 
+    ('GIVEN', 3),
     ('CHOLMOD', 4),
     ('AMD', 5),
     ('METIS', 6),
@@ -37,24 +37,31 @@ _ORDERINGS = (
     ('BESTAMD', 9),
 )
 
+def _householder_multiply_python(
+    vector, householder_reflections, householder_coefficients, backward=False):
+    """Householder multiplication of single vector, used to test C function."""
+    for i in range(len(householder_coefficients)-1, -1, -1
+            ) if backward else range(len(householder_coefficients)):
+        coeff = householder_coefficients[i]
+        col = householder_reflections[:, i].todense().A1
+        vector -= ((col @ vector) * coeff) * col
 
 class HouseholderOrthogonal(sp.sparse.linalg.LinearOperator):
     """Orthogonal linear operator with Householder reflections."""
 
     def _rmatvec(self, input_vector):
-        result = np.empty_like(input_vector)
-        result[self.permutation] = input_vector
-        for k in range(self.n_reflections):
-            col = self.householder_reflections[:, k].todense().A1
-            result -= ((col @ result) * self.householder_coefficients[k]) * col
+        result = self.permutation_linop.T @ input_vector
+        _householder_multiply_python(
+            result, self.householder_reflections,
+            self.householder_coefficients, backward=False)
         return result
 
     def _matvec(self, input_vector):
         result = np.array(input_vector, copy=True)
-        for k in range(self.n_reflections)[::-1]:
-            col = self.householder_reflections[:, k].todense().A1
-            result -= ((col @ result) * self.householder_coefficients[k]) * col
-        return result[self.permutation]
+        _householder_multiply_python(
+            result, self.householder_reflections,
+            self.householder_coefficients, backward=True)
+        return self.permutation_linop @ result
 
     def __init__(
         self,
@@ -65,8 +72,8 @@ class HouseholderOrthogonal(sp.sparse.linalg.LinearOperator):
 
         self.householder_reflections = householder_reflections
         self.householder_coefficients = householder_coefficients
-        self.permutation = permutation
-        self.n_reflections = self.householder_reflections.shape[1]
+        self.permutation_array = permutation
+        self.permutation_linop = Permutation(self.permutation_array)
 
         m = len(self.permutation)
         super().__init__(dtype=float, shape=(m, m))
@@ -86,6 +93,18 @@ class Permutation(sp.sparse.linalg.LinearOperator):
     def __init__(self, permutation):
         self.permutation = permutation
         n = len(permutation)
+        super().__init__(shape=(n, n), dtype=float)
+
+class IdentityLinOp(sp.sparse.linalg.LinearOperator):
+    """Identity linear operator."""
+
+    def _matvec(self, vector):
+        return vector
+
+    def _rmatvec(self, vector):
+        return vector
+
+    def __init__(self, n):
         super().__init__(shape=(n, n), dtype=float)
 
 
@@ -116,4 +135,4 @@ def qr(matrix: sp.sparse.csc_matrix, ordering='AMD'):
     r_csc = _make_csc_matrix(*r_tuple)
     h_csc = _make_csc_matrix(*h_tuple)
     q = HouseholderOrthogonal(h_csc, h_tau, h_pinv)
-    return q, r_csc, Permutation(e)
+    return q, r_csc, IdentityLinOp(matrix.shape[1]) if e is None else Permutation(e)

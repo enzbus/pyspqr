@@ -30,7 +30,6 @@ class TestSuiteSparseQRExtension(TestCase):
 
     def test_qr_valid(self):
         """Test on a simple matrix."""
-        
 
         m = 2
         n = 3
@@ -43,8 +42,6 @@ class TestSuiteSparseQRExtension(TestCase):
         from _pyspqr import qr
 
         for ordering in range(10):
-            if ordering in [0,3]:
-                continue # TODO: fix, both give NULL permutation E
             result = qr(m, n, data, indices, indptr, ordering)
             print(result)
 

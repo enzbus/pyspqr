@@ -203,21 +203,21 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    if (!PyArray_Check(data_np) || PyArray_TYPE(data_np) != NPY_DOUBLE || !PyArray_IS_C_CONTIGUOUS(data_np)){
+    if (!PyArray_Check(data_np) || PyArray_NDIM(data_np) != 1 || PyArray_TYPE(data_np) != NPY_DOUBLE || !PyArray_IS_C_CONTIGUOUS(data_np)){
         PyErr_SetString(PyExc_TypeError,
-           "Data argument must be contiguous double Numpy array.");
+           "Data argument must be contiguous 1-dimensional double Numpy array.");
         return NULL;
     }
 
-    if (!PyArray_Check(indices_np) || PyArray_TYPE(indices_np) != NPY_INT32 || !PyArray_IS_C_CONTIGUOUS(indices_np)){
+    if (!PyArray_Check(indices_np) || PyArray_NDIM(data_np) != 1 || PyArray_TYPE(indices_np) != NPY_INT32 || !PyArray_IS_C_CONTIGUOUS(indices_np)){
         PyErr_SetString(PyExc_TypeError,
-            "Indices argument must be contiguous int32 Numpy array.");
+            "Indices argument must be contiguous 1-dimensional int32 Numpy array.");
         return NULL;
     }
 
-    if (!PyArray_Check(indptr_np) || PyArray_TYPE(indptr_np) != NPY_INT32 || !PyArray_IS_C_CONTIGUOUS(indptr_np)){
+    if (!PyArray_Check(indptr_np) || PyArray_NDIM(data_np) != 1 || PyArray_TYPE(indptr_np) != NPY_INT32 || !PyArray_IS_C_CONTIGUOUS(indptr_np)){
         PyErr_SetString(PyExc_TypeError,
-            "Indptr argument must be contiguous int32 Numpy array.");
+            "Indptr argument must be contiguous 1-dimensional int32 Numpy array.");
         return NULL;
     }
 
@@ -369,21 +369,22 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
 
     cholmod_print_dense(HTau, "HTau matrix", cc);
 
-    if (!E){
-        PyErr_SetString(PyExc_ValueError,
-            "Second permutation array E is null!");
-        goto free_and_exit_with_exception;
-    }
-
     /*We start freeing incrementally, to save memory. These are unused.*/
     cholmod_free_sparse(&Zsparse, cc);
     cholmod_free_dense(&Zdense, cc);
 
     /*Box Python objects to return.*/
-    PyObject* E_np = create_1dim_array_from_data(
+    /*Depending on the ordering, E can be NULL.*/
+    PyObject* E_np_or_none;
+    if (!E){
+        E_np_or_none = Py_None;
+    } else {
+    E_np_or_none = create_1dim_array_from_data(
         (size_t)n, NPY_INT32, sizeof(int32_t), (void*)E);
     free(E);
-    if (!E_np){
+    }
+
+    if (!E_np_or_none){
         /*Exception set by Numpy.*/
         free(HPinv);
         cholmod_free_dense(&HTau, cc);
@@ -444,7 +445,7 @@ static inline PyObject *qr(PyObject *self, PyObject *args){
     PyTuple_SetItem(rslt, 1, H_py);
     PyTuple_SetItem(rslt, 2, HPinv_np);
     PyTuple_SetItem(rslt, 3, HPTau_np);
-    PyTuple_SetItem(rslt, 4, E_np);
+    PyTuple_SetItem(rslt, 4, E_np_or_none);
     return rslt;
 
     /*Exception during QR factorization.*/
