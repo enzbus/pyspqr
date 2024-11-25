@@ -62,7 +62,7 @@ setup(
             include_dirs=kw['include_dirs'],
             library_dirs=kw['library_dirs'],
             libraries=kw['libraries'],
-            extra_compile_args=[],
+            extra_compile_args=["-O3", "-fopenmp-simd"],
             # We define it in the code for safety
             # define_macros=[("Py_LIMITED_API", "0x03060000")],
             py_limited_api = True
