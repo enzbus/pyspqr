@@ -234,7 +234,7 @@ static inline PyObject * q_multiply(PyObject *self, PyObject *args){
             //printf("dot product value %f\n", dot_product);
             //printf("%d %d\n", householder_reflection_indptr[0], householder_reflection_indptr[1]);
 
-            #pragma omp simd
+            #pragma omp simd reduction(+:dot_product)
             for (int k = householder_reflection_indptr[j];
                 k < householder_reflection_indptr[j+1]; k++){
                 dot_product += householder_reflection_data[k] * vector[householder_reflection_indices[k]];
@@ -257,7 +257,7 @@ static inline PyObject * q_multiply(PyObject *self, PyObject *args){
             //printf("dot product value %f\n", dot_product);
             //printf("%d %d\n", householder_reflection_indptr[0], householder_reflection_indptr[1]);
 
-            #pragma omp simd
+            #pragma omp simd reduction(+:dot_product)
             for (int k = householder_reflection_indptr[j];
                 k < householder_reflection_indptr[j+1]; k++){
                 dot_product += householder_reflection_data[k] * vector[householder_reflection_indices[k]];
